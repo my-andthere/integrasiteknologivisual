@@ -240,11 +240,48 @@ menjalankan API, sehingga form perlu diarahkan ke form service pihak ketiga).
     ├── favicon.svg      # favicon 64×64 (ITV)
     ├── img/
     │   └── og-default.svg  # gambar Open Graph default 1200×630
+    ├── vendor/
+    │   └── bootstrap-icons/ # Bootstrap Icons 1.11.3 (lokal, tanpa CDN)
+    │       ├── bootstrap-icons.min.css
+    │       └── fonts/
+    │           ├── bootstrap-icons.woff2
+    │           └── bootstrap-icons.woff
     └── admin/
         ├── index.html   # shell portal CMS
         ├── admin.css
         └── admin.js     # login, dashboard, artikel, SEO, branding, keyword, analitik, lead
 ```
+
+### Ikon: Bootstrap Icons
+
+Semua ikon situs memakai **Bootstrap Icons 1.11.3** yang di-*vendor* secara lokal di
+`public/vendor/bootstrap-icons/` (tidak bergantung pada CDN eksternal). Setiap halaman
+memuat CSS-nya sebelum stylesheet utama:
+
+```html
+<link rel="stylesheet" href="/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+```
+
+Penggunaan di HTML:
+
+```html
+<i class="bi bi-telephone"></i>
+```
+
+Untuk ikon yang berasal dari database (mis. kolom `services.icon`), nilainya disimpan
+sebagai nama ikon singkat tanpa prefiks (contoh: `gear`, `display`, `code-square`,
+`diagram-3`, `cloud`) karena kolom bertipe `VARCHAR(16)`, lalu dirender oleh helper
+`biIcon()` di `public/script.js`:
+
+```js
+function biIcon(name) {
+  const safe = String(name || 'gear').replace(/[^a-z0-9-]/gi, '') || 'gear';
+  return el('i', `bi bi-${safe}`);
+}
+```
+
+> Catatan: `el()` menetapkan `textContent`, sehingga elemen ikon harus dibuat lewat
+> `document.createElement('i')` / `innerHTML`.
 
 ---
 
