@@ -108,6 +108,7 @@
       branding: loadBranding,
       keywords: loadKeywords,
       clients: loadClientsPartners,
+      banners: loadBanners,
       analytics: loadAnalytics,
       leads: loadLeads
     };
@@ -129,7 +130,8 @@
       { label: 'Leads 30 hari', value: fmt(s.leads_30d), hint: `${fmt(s.leads_new)} baru` },
       { label: 'Artikel Terbit', value: `${fmt(s.articles_published)}/${fmt(s.articles_total)}`, hint: 'artikel aktif' },
       { label: 'Kata Kunci Dipantau', value: fmt(s.keywords_total), hint: 'target SEO' },
-      { label: 'Klien & Mitra', value: `${fmt(s.clients_total)}/${fmt(s.partners_total)}`, hint: 'klien / mitra' }
+      { label: 'Klien & Mitra', value: `${fmt(s.clients_total)}/${fmt(s.partners_total)}`, hint: 'klien / mitra' },
+      { label: 'Slide Banner', value: fmt(s.banners_total), hint: 'slide hero aktif' }
     ];
     $('#kpiGrid').innerHTML = cards.map((c) => `
       <div class="kpi">
@@ -635,6 +637,103 @@
 
   $('#resetPartner').addEventListener('click', () => {
     const form = $('#partnerForm');
+    form.reset();
+    form.id.value = '';
+  });
+
+  /* ---------------- banner slideshow ---------------- */
+  let allBanners = [];
+
+  async function loadBanners() {
+    const res = await api('/admin/banners');
+    allBanners = res.banners || [];
+    renderBanners();
+  }
+
+  function renderBanners() {
+    const tb = $('#bannerTable tbody');
+    tb.innerHTML = allBanners.length ? allBanners.map((b) => `
+      <tr>
+        <td><strong>${escapeHtml(b.title)}</strong>${b.eyebrow ? `<br><small>${escapeHtml(b.eyebrow)}</small>` : ''}</td>
+        <td><small>/${escapeHtml(b.slug)}</small></td>
+        <td>${fmt(b.sort_order)}</td>
+        <td>${statusBadge(b.is_active)}</td>
+        <td>
+          <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${b.id}">Edit</button>
+          <button class="btn btn--ghost btn--sm" data-act="del" data-id="${b.id}">Hapus</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="5" class="muted">Belum ada slide banner.</td></tr>';
+
+    $$('#bannerTable [data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const b = allBanners.find((x) => String(x.id) === String(btn.dataset.id));
+        if (!b) return;
+        if (btn.dataset.act === 'edit') {
+          const form = $('#bannerForm');
+          form.id.value = b.id;
+          form.title.value = b.title || '';
+          form.title_highlight.value = b.title_highlight || '';
+          form.eyebrow.value = b.eyebrow || '';
+          form.slug.value = b.slug || '';
+          form.description.value = b.description || '';
+          form.cta_label.value = b.cta_label || '';
+          form.cta_url.value = b.cta_url || '';
+          form.cta2_label.value = b.cta2_label || '';
+          form.cta2_url.value = b.cta2_url || '';
+          form.accent.value = b.accent || '';
+          form.visual_title.value = b.visual_title || '';
+          form.visual_label.value = b.visual_label || '';
+          form.visual_caption.value = b.visual_caption || '';
+          form.chips.value = Array.isArray(b.chips) ? b.chips.join(', ') : (b.chips || '');
+          const badges = Array.isArray(b.badges) ? b.badges : [];
+          form.badges.value = badges.map((x) => `${x.v || ''}|${x.l || ''}`).join('\n');
+          form.sort_order.value = b.sort_order;
+          form.is_active.value = String(b.is_active);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (!confirm('Hapus slide banner ini?')) return;
+          api(`/admin/banners/${btn.dataset.id}`, { method: 'DELETE' })
+            .then(() => { toast('Slide banner dihapus'); loadBanners(); })
+            .catch((e) => toast(e.message));
+        }
+      });
+    });
+  }
+
+  $('#bannerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      title: form.title.value,
+      title_highlight: form.title_highlight.value,
+      eyebrow: form.eyebrow.value,
+      slug: form.slug.value,
+      description: form.description.value,
+      cta_label: form.cta_label.value,
+      cta_url: form.cta_url.value,
+      cta2_label: form.cta2_label.value,
+      cta2_url: form.cta2_url.value,
+      accent: form.accent.value,
+      visual_title: form.visual_title.value,
+      visual_label: form.visual_label.value,
+      visual_caption: form.visual_caption.value,
+      chips: form.chips.value,
+      badges: form.badges.value,
+      sort_order: num(form.sort_order.value),
+      is_active: form.is_active.value === '1'
+    };
+    try {
+      if (form.id.value) await api(`/admin/banners/${form.id.value}`, { method: 'PUT', body });
+      else await api('/admin/banners', { method: 'POST', body });
+      toast('Slide banner disimpan');
+      form.reset();
+      form.id.value = '';
+      loadBanners();
+    } catch (err) { toast(err.message); }
+  });
+
+  $('#resetBanner').addEventListener('click', () => {
+    const form = $('#bannerForm');
     form.reset();
     form.id.value = '';
   });

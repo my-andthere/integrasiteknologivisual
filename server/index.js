@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { query, parseJson, checkConnection } from './db.js';
+import { query, parseJson, checkConnection, mapBanner } from './db.js';
 import cmsRouter from './cms-api.js';
 import { purgeExpiredSessions } from './auth.js';
 
@@ -80,6 +80,19 @@ app.get('/api/clients', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+/* Slide banner slideshow hero */
+app.get('/api/banners', async (_req, res, next) => {
+  try {
+    const rows = await query(
+      `SELECT id, slug, title, title_highlight, eyebrow, description,
+              cta_label, cta_url, cta2_label, cta2_url, accent,
+              visual_title, visual_label, visual_caption, chips, badges, sort_order
+       FROM banners WHERE is_active = 1 ORDER BY sort_order, id`
+    );
+    res.json({ slides: rows.map(mapBanner) });
+  } catch (e) { next(e); }
+});
+
 app.get('/api/stats', async (_req, res, next) => {
   try {
     const rows = await query(
@@ -89,6 +102,7 @@ app.get('/api/stats', async (_req, res, next) => {
          (SELECT COUNT(*) FROM sectors  WHERE is_active = 1) AS sectors,
          (SELECT COUNT(*) FROM clients  WHERE is_active = 1) AS clients,
          (SELECT COUNT(*) FROM partners WHERE is_active = 1) AS partners,
+         (SELECT COUNT(*) FROM banners  WHERE is_active = 1) AS banners,
          (SELECT COUNT(*) FROM leads)                    AS leads`
     );
     res.json(rows[0]);

@@ -51,6 +51,7 @@
       <button class="nav__item" data-view="branding"><span><i class="bi bi-palette"></i></span> Branding</button>
       <button class="nav__item" data-view="keywords"><span><i class="bi bi-key"></i></span> Kata Kunci</button>
       <button class="nav__item" data-view="clients"><span><i class="bi bi-buildings"></i></span> Klien &amp; Mitra</button>
+      <button class="nav__item" data-view="banners"><span><i class="bi bi-images"></i></span> Banner Slideshow</button>
       <button class="nav__item" data-view="analytics"><span><i class="bi bi-bar-chart-line"></i></span> Analitik</button>
       <button class="nav__item" data-view="leads"><span><i class="bi bi-envelope"></i></span> Leads</button>
     </nav>
@@ -405,6 +406,52 @@
         <div class="table-wrap">
           <table class="table" id="partnerTable">
             <thead><tr><th>Nama</th><th>Kategori</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BANNER SLIDESHOW ============ -->
+    <section class="view" id="view-banners" hidden>
+      <header class="view__head">
+        <h1>Banner Slideshow</h1>
+        <p class="muted">Kelola slide banner pada bagian atas halaman utama. Urutan terkecil tampil lebih dulu dan slide nonaktif disembunyikan dari website.</p>
+      </header>
+
+      <div class="card">
+        <h3>Tambah / Perbarui Slide</h3>
+        <form class="grid-form" id="bannerForm">
+          <input type="hidden" name="id" />
+          <label>Judul Slide <input type="text" name="title" required maxlength="180" /></label>
+          <label>Highlight Judul <input type="text" name="title_highlight" maxlength="180" placeholder="Bagian yang diberi warna cyan" /></label>
+          <label>Eyebrow <input type="text" name="eyebrow" maxlength="120" placeholder="Label kecil di atas judul" /></label>
+          <label>Slug <input type="text" name="slug" maxlength="80" placeholder="otomatis dari judul" /></label>
+          <label class="col-2">Deskripsi <textarea name="description" rows="4" placeholder="Mendukung tag &lt;strong&gt;, &lt;em&gt;, dan &lt;br&gt;"></textarea></label>
+          <label>Label CTA Utama <input type="text" name="cta_label" maxlength="80" /></label>
+          <label>URL CTA Utama <input type="text" name="cta_url" maxlength="255" placeholder="#kontak" /></label>
+          <label>Label CTA Kedua <input type="text" name="cta2_label" maxlength="80" /></label>
+          <label>URL CTA Kedua <input type="text" name="cta2_url" maxlength="255" placeholder="#layanan" /></label>
+          <label>Judul Visual <input type="text" name="visual_title" maxlength="120" /></label>
+          <label>Label Visual <input type="text" name="visual_label" maxlength="120" /></label>
+          <label>Caption Visual <input type="text" name="visual_caption" maxlength="180" /></label>
+          <label>Warna Aksen <input type="text" name="accent" maxlength="60" placeholder="rgba(31,111,235,.28)" /></label>
+          <label class="col-2">Chips (pisahkan dengan koma) <input type="text" name="chips" maxlength="500" placeholder="Video Wall, Interactive Kiosk" /></label>
+          <label class="col-2">Badges (satu baris per badge, format Nilai|Label)
+            <textarea name="badges" rows="4" placeholder="6 Bulan|Garansi Software&#10;1 Tahun|Garansi Hardware"></textarea>
+          </label>
+          <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
+          <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+          <button type="submit" class="btn btn--primary">Simpan</button>
+          <button type="button" class="btn btn--ghost" id="resetBanner">Reset</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Slide</h3>
+        <div class="table-wrap">
+          <table class="table" id="bannerTable">
+            <thead><tr><th>Judul</th><th>Slug</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

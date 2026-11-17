@@ -110,6 +110,7 @@ router.get('/admin/dashboard', async (_req, res, next) => {
         (SELECT COUNT(*) FROM keywords) AS keywords_total,
         (SELECT COUNT(*) FROM clients) AS clients_total,
         (SELECT COUNT(*) FROM partners) AS partners_total,
+        (SELECT COUNT(*) FROM banners) AS banners_total,
         (SELECT AVG(duration) FROM page_views WHERE created_at >= NOW() - INTERVAL 30 DAY) AS avg_duration,
         (SELECT COUNT(*) FROM analytics_events WHERE created_at >= NOW() - INTERVAL 30 DAY) AS events_30d`
     );
@@ -435,6 +436,126 @@ router.delete('/admin/partners/:id', async (req, res, next) => {
   try {
     await query('DELETE FROM partners WHERE id = ?', [req.params.id]);
     res.json({ ok: true, message: 'Mitra dihapus' });
+  } catch (e) { next(e); }
+});
+
+/* =========================================================
+   BANNER SLIDESHOW (CRUD)
+   ========================================================= */
+
+/** Parse daftar chip: array atau "A, B, C" -> ["A","B","C"] */
+function parseChips(value) {
+  if (Array.isArray(value)) {
+    return value.map((c) => String(c).trim()).filter(Boolean).slice(0, 12);
+  }
+  return String(value || '')
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+/**
+ * Parse badge dari:
+ *  - array object: [{ v, l }]
+ *  - teks multiline: "Nilai|Label" per baris
+ */
+function parseBadges(value) {
+  let list = [];
+  if (Array.isArray(value)) {
+    list = value
+      .map((b) => ({ v: String(b?.v ?? '').trim(), l: String(b?.l ?? '').trim() }))
+      .filter((b) => b.v || b.l);
+  } else {
+    list = String(value || '')
+      .split(/\r?\n/)
+      .map((line) => line.split('|'))
+      .map(([v, l]) => ({ v: String(v || '').trim(), l: String(l || '').trim() }))
+      .filter((b) => b.v || b.l);
+  }
+  return list.slice(0, 8);
+}
+
+router.get('/admin/banners', async (_req, res, next) => {
+  try {
+    const banners = await query(
+      `SELECT id, slug, title, title_highlight, eyebrow, description,
+              cta_label, cta_url, cta2_label, cta2_url, accent,
+              visual_title, visual_label, visual_caption, chips, badges, sort_order, is_active
+       FROM banners ORDER BY sort_order, id`
+    );
+    res.json({
+      ok: true,
+      banners: banners.map((b) => ({
+        ...b,
+        chips: parseChips(b.chips),
+        badges: parseJson(b.badges, [])
+      }))
+    });
+  } catch (e) { next(e); }
+});
+
+async function saveBanner(req, res, next, bannerId = null) {
+  try {
+    const b = req.body || {};
+    const title = String(b.title || '').trim();
+    if (!title) return res.status(422).json({ ok: false, error: 'judul slide wajib diisi' });
+
+    const all = await query('SELECT id, slug FROM banners');
+    const slug = uniqueSlug(all, b.slug || title, bannerId || 0, 'slide');
+
+    const titleHighlight = b.title_highlight ? String(b.title_highlight).trim().slice(0, 180) : null;
+    const eyebrow = b.eyebrow ? String(b.eyebrow).trim().slice(0, 120) : null;
+    const description = b.description ? String(b.description).trim().slice(0, 2000) : null;
+    const ctaLabel = b.cta_label ? String(b.cta_label).trim().slice(0, 80) : null;
+    const ctaUrl = b.cta_url ? String(b.cta_url).trim().slice(0, 255) : null;
+    const cta2Label = b.cta2_label ? String(b.cta2_label).trim().slice(0, 80) : null;
+    const cta2Url = b.cta2_url ? String(b.cta2_url).trim().slice(0, 255) : null;
+    const accent = b.accent ? String(b.accent).trim().slice(0, 60) : null;
+    const visualTitle = b.visual_title ? String(b.visual_title).trim().slice(0, 120) : null;
+    const visualLabel = b.visual_label ? String(b.visual_label).trim().slice(0, 120) : null;
+    const visualCaption = b.visual_caption ? String(b.visual_caption).trim().slice(0, 180) : null;
+    const chips = parseChips(b.chips).join(',').slice(0, 500) || null;
+    const badges = JSON.stringify(parseBadges(b.badges)).slice(0, 4000);
+    const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
+    const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+
+    const values = [
+      slug, title.slice(0, 180), titleHighlight, eyebrow, description,
+      ctaLabel, ctaUrl, cta2Label, cta2Url, accent,
+      visualTitle, visualLabel, visualCaption, chips, badges, sortOrder, isActive
+    ];
+
+    if (bannerId) {
+      await query(
+        `UPDATE banners SET slug=?, title=?, title_highlight=?, eyebrow=?, description=?,
+                cta_label=?, cta_url=?, cta2_label=?, cta2_url=?, accent=?,
+                visual_title=?, visual_label=?, visual_caption=?, chips=?, badges=?,
+                sort_order=?, is_active=? WHERE id=?`,
+        [...values, bannerId]
+      );
+      return res.json({ ok: true, id: bannerId, message: 'Slide banner diperbarui' });
+    }
+
+    const result = await query(
+      `INSERT INTO banners
+        (slug, title, title_highlight, eyebrow, description, cta_label, cta_url,
+         cta2_label, cta2_url, accent, visual_title, visual_label, visual_caption,
+         chips, badges, sort_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      values
+    );
+    res.json({ ok: true, id: result.insertId, message: 'Slide banner dibuat' });
+  } catch (e) { next(e); }
+}
+
+router.post('/admin/banners', (req, res, next) => saveBanner(req, res, next, null));
+router.put('/admin/banners/:id', (req, res, next) => saveBanner(req, res, next, Number(req.params.id)));
+
+router.delete('/admin/banners/:id', async (req, res, next) => {
+  try {
+    await query('DELETE FROM banners WHERE id = ?', [req.params.id]);
+    res.json({ ok: true, message: 'Slide banner dihapus' });
   } catch (e) { next(e); }
 });
 

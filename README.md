@@ -44,6 +44,9 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 - **Manajemen Klien & Mitra**: CRUD penuh untuk tabel `clients` (nama, segmen, monogram, urutan, status
   aktif) dan `partners` (nama, kategori, deskripsi, monogram, urutan, status aktif) — perubahan
   langsung tampil pada section `#klien` di landing page. Slug dibuat otomatis dan dijamin unik.
+- **Manajemen Banner Slideshow**: CRUD penuh untuk slide hero carousel (judul + highlight, eyebrow,
+  deskripsi ber-HTML, dua CTA, panel visual, warna aksen, chips, badges, urutan, status aktif) —
+  perubahan langsung tampil pada hero landing page. Slug dibuat otomatis dan dijamin unik.
 
 ---
 
@@ -111,6 +114,7 @@ Database `itv_corporate` (charset `utf8mb4` / `utf8mb4_unicode_ci`, engine InnoD
 | `sectors`  | 7 sektor penempatan layanan (deskripsi, tags)         |
 | `clients`  | 10 klien per industri (nama, segmen, monogram)        |
 | `partners` | 8 mitra/ekosistem teknologi (kategori, deskripsi)     |
+| `banners`  | Slide hero carousel (judul, CTA, chips, badges, urutan) |
 | `leads`    | Permintaan konsultasi dari form situs (status `new`)  |
 
 ### CMS
@@ -141,6 +145,7 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | GET    | `/api/products`         | Daftar produk aktif                                 |
 | GET    | `/api/sectors`          | Daftar sektor aktif                                 |
 | GET    | `/api/clients`          | Daftar klien aktif + mitra/ekosistem teknologi      |
+| GET    | `/api/banners`          | Slide banner aktif untuk hero carousel             |
 | GET    | `/api/stats`            | Jumlah layanan/produk/sektor/leads                 |
 | GET    | `/api/site-config`      | Branding + SEO aktif untuk website publik          |
 | GET    | `/api/articles`         | Artikel terbit (`?limit=`)                          |
@@ -175,6 +180,10 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | POST   | `/api/admin/partners`          | Tambah mitra                          |
 | PUT    | `/api/admin/partners/:id`      | Ubah mitra                            |
 | DELETE | `/api/admin/partners/:id`      | Hapus mitra                          |
+| GET    | `/api/admin/banners`           | Daftar slide banner + status aktif         |
+| POST   | `/api/admin/banners`           | Tambah slide banner                        |
+| PUT    | `/api/admin/banners/:id`       | Ubah slide banner                          |
+| DELETE | `/api/admin/banners/:id`       | Hapus slide banner                         |
 | GET    | `/api/admin/leads`             | Daftar prospek                             |
 | PUT    | `/api/admin/leads/:id`         | Ubah status prospek                        |
 

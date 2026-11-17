@@ -552,6 +552,9 @@ initAnalytics();
 /* =========================================================
    Banner Slideshow (Hero Carousel)
    ========================================================= */
+let bannerAbort = null;
+let bannerTimer = null;
+
 function initBanner() {
   const root = document.getElementById('hero');
   const track = document.getElementById('bannerSlides');
@@ -559,6 +562,17 @@ function initBanner() {
   const prevBtn = document.getElementById('bannerPrev');
   const nextBtn = document.getElementById('bannerNext');
   if (!root || !track) return;
+
+  /* bersihkan instance sebelumnya agar bisa di-inisialisasi ulang */
+  if (bannerAbort) bannerAbort.abort();
+  bannerAbort = new AbortController();
+  const signal = bannerAbort.signal;
+  if (bannerTimer) {
+    clearInterval(bannerTimer);
+    bannerTimer = null;
+  }
+  if (dotsBox) dotsBox.innerHTML = '';
+  track.style.transform = 'translateX(0)';
 
   const slides = Array.from(track.querySelectorAll('.banner__slide'));
   if (!slides.length) return;
@@ -580,7 +594,7 @@ function initBanner() {
     dot.addEventListener('click', () => {
       goTo(i);
       restart();
-    });
+    }, { signal });
     if (dotsBox) dotsBox.appendChild(dot);
     return dot;
   });
@@ -621,6 +635,7 @@ function initBanner() {
     timer = setInterval(() => {
       if (!paused) goTo(index + 1);
     }, DURATION);
+    bannerTimer = timer;
   }
 
   function restart() {
@@ -631,19 +646,19 @@ function initBanner() {
     prevBtn.addEventListener('click', () => {
       goTo(index - 1);
       restart();
-    });
+    }, { signal });
   }
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
       goTo(index + 1);
       restart();
-    });
+    }, { signal });
   }
 
-  root.addEventListener('mouseenter', () => { paused = true; });
-  root.addEventListener('mouseleave', () => { paused = false; });
-  root.addEventListener('focusin', () => { paused = true; });
-  root.addEventListener('focusout', () => { paused = false; });
+  root.addEventListener('mouseenter', () => { paused = true; }, { signal });
+  root.addEventListener('mouseleave', () => { paused = false; }, { signal });
+  root.addEventListener('focusin', () => { paused = true; }, { signal });
+  root.addEventListener('focusout', () => { paused = false; }, { signal });
 
   root.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') {
@@ -653,7 +668,7 @@ function initBanner() {
       goTo(index + 1);
       restart();
     }
-  });
+  }, { signal });
 
   let touchStartX = 0;
   let touching = false;
@@ -664,7 +679,7 @@ function initBanner() {
       touching = true;
       paused = true;
     },
-    { passive: true }
+    { passive: true, signal }
   );
   root.addEventListener(
     'touchend',
@@ -678,7 +693,7 @@ function initBanner() {
         restart();
       }
     },
-    { passive: true }
+    { passive: true, signal }
   );
 
   goTo(0);
@@ -746,5 +761,188 @@ async function loadClients() {
   }
 }
 
+/* =========================================================
+   Banner Slideshow dari database
+   ========================================================= */
+
+/** Escape teks biasa agar aman disisipkan ke innerHTML. */
+function escapeHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Sanitasi HTML terbatas untuk deskripsi slide.
+ * Hanya tag <strong>, <em>, <br> yang diizinkan.
+ */
+function sanitizeRichHtml(value) {
+  const escaped = escapeHtml(value);
+  return escaped
+    .replace(/&lt;(\/?)(strong|em|b|i|br)\s*\/?&gt;/gi, '<$1$2>')
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+}
+
+/** Validasi nilai warna aksen (rgba / hex) agar tidak bisa menyuntik CSS. */
+function safeAccent(value) {
+  const v = String(value || '').trim();
+  if (!v) return '';
+  if (/^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\)$/i.test(v)) return v;
+  if (/^#[0-9a-f]{3,8}$/i.test(v)) return v;
+  return '';
+}
+
+function buildBannerSlide(slide, index) {
+  const isFirst = index === 0;
+  const article = document.createElement('article');
+  article.className = 'banner__slide' + (isFirst ? ' is-active' : '');
+  article.setAttribute('data-banner-slide', String(index + 1));
+  article.setAttribute('role', 'group');
+  article.setAttribute('aria-roledescription', 'slide');
+  article.setAttribute('aria-label', slide.eyebrow || slide.title || 'Sorotan ' + (index + 1));
+
+  const accent = safeAccent(slide.accent);
+  if (accent) article.style.setProperty('--slide-accent', accent);
+
+  const inner = document.createElement('div');
+  inner.className = 'wrap banner__inner';
+
+  const copy = document.createElement('div');
+  copy.className = 'banner__copy';
+
+  if (slide.eyebrow) {
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = slide.eyebrow;
+    copy.appendChild(eyebrow);
+  }
+
+  const heading = document.createElement(isFirst ? 'h1' : 'h2');
+  heading.className = 'banner__title';
+  heading.appendChild(document.createTextNode(slide.title || ''));
+  if (slide.title_highlight) {
+    const hl = document.createElement('span');
+    hl.textContent = slide.title_highlight;
+    heading.appendChild(document.createTextNode(' '));
+    heading.appendChild(hl);
+  }
+  copy.appendChild(heading);
+
+  if (slide.description) {
+    const lead = document.createElement('p');
+    lead.className = 'hero__lead';
+    lead.innerHTML = sanitizeRichHtml(slide.description);
+    copy.appendChild(lead);
+  }
+
+  if (slide.cta_label || slide.cta2_label) {
+    const actions = document.createElement('div');
+    actions.className = 'hero__actions';
+    if (slide.cta_label) {
+      const a = document.createElement('a');
+      a.href = slide.cta_url || '#kontak';
+      a.className = 'btn btn--primary';
+      a.setAttribute('data-track', 'cta_hero_konsultasi');
+      a.textContent = slide.cta_label;
+      actions.appendChild(a);
+    }
+    if (slide.cta2_label) {
+      const a = document.createElement('a');
+      a.href = slide.cta2_url || '#layanan';
+      a.className = 'btn btn--ghost';
+      a.setAttribute('data-track', 'cta_hero_layanan');
+      a.textContent = slide.cta2_label;
+      actions.appendChild(a);
+    }
+    copy.appendChild(actions);
+  }
+
+  const badges = Array.isArray(slide.badges) ? slide.badges : [];
+  if (badges.length) {
+    const box = document.createElement('div');
+    box.className = 'hero__badges';
+    badges.forEach((b) => {
+      const item = document.createElement('div');
+      const v = document.createElement('b');
+      v.textContent = b.v || '';
+      const l = document.createElement('span');
+      l.textContent = b.l || '';
+      item.appendChild(v);
+      item.appendChild(l);
+      box.appendChild(item);
+    });
+    copy.appendChild(box);
+  }
+
+  inner.appendChild(copy);
+
+  if (slide.visual_title || slide.visual_label || (slide.chips && slide.chips.length)) {
+    const aside = document.createElement('aside');
+    aside.className = 'card-visual';
+
+    if (slide.visual_title) {
+      const h3 = document.createElement('h3');
+      h3.textContent = slide.visual_title;
+      aside.appendChild(h3);
+    }
+
+    if (slide.visual_label || slide.visual_caption) {
+      const screen = document.createElement('div');
+      screen.className = 'screen';
+      const innerBox = document.createElement('div');
+      const b = document.createElement('b');
+      b.textContent = slide.visual_label || '';
+      const s = document.createElement('span');
+      s.textContent = slide.visual_caption || '';
+      innerBox.appendChild(b);
+      innerBox.appendChild(s);
+      screen.appendChild(innerBox);
+      aside.appendChild(screen);
+    }
+
+    const chips = Array.isArray(slide.chips) ? slide.chips : [];
+    if (chips.length) {
+      const row = document.createElement('div');
+      row.className = 'chip-row';
+      chips.forEach((c) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = c;
+        row.appendChild(chip);
+      });
+      aside.appendChild(row);
+    }
+
+    inner.appendChild(aside);
+  }
+
+  article.appendChild(inner);
+  return article;
+}
+
+function renderBanners(slides) {
+  const track = document.getElementById('bannerSlides');
+  if (!track || !Array.isArray(slides) || !slides.length) return false;
+  track.innerHTML = '';
+  slides.forEach((slide, i) => track.appendChild(buildBannerSlide(slide, i)));
+  return true;
+}
+
+async function loadBanners() {
+  try {
+    const data = await api('/banners');
+    const slides = Array.isArray(data) ? data : data.slides;
+    if (renderBanners(slides)) {
+      initBanner();
+    }
+  } catch {
+    /* biarkan markup statis sebagai fallback */
+  }
+}
+
 initBanner();
+loadBanners();
 loadClients();

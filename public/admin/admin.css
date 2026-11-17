@@ -137,6 +137,8 @@ small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
 .grid-form label { margin-bottom: 0; }
+.grid-form .col-2 { grid-column: 1 / -1; }
+.grid-form textarea { width: 100%; }
 .grid-editor { display: grid; grid-template-columns: 1fr; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 

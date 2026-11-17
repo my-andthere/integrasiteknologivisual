@@ -40,3 +40,20 @@ export async function checkConnection() {
   const rows = await query('SELECT VERSION() AS version, DATABASE() AS db');
   return rows[0];
 }
+
+/**
+ * Normalisasi baris tabel `banners`:
+ *  - chips   : "A, B, C"  -> ["A", "B", "C"]
+ *  - badges  : JSON string -> [{ v: "6 Bulan", l: "Garansi Software" }]
+ */
+export function mapBanner(row) {
+  if (!row) return null;
+  return {
+    ...row,
+    chips: String(row.chips || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean),
+    badges: parseJson(row.badges, [])
+  };
+}
