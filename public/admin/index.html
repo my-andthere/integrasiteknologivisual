@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Portal CMS — PT. Integration Teknologi Visual</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="loginScreen">
+  <form class="login-card" id="loginForm">
+    <div class="login-brand">
+      <span class="login-logo">ITV</span>
+      <div>
+        <strong>Integration Teknologi Visual</strong>
+        <small>Portal CMS</small>
+      </div>
+    </div>
+    <h1>Masuk ke Portal CMS</h1>
+    <p class="muted">Kelola artikel, SEO, branding, dan analisis pengunjung.</p>
+    <label>Username
+      <input type="text" id="loginUser" autocomplete="username" required />
+    </label>
+    <label>Password
+      <input type="password" id="loginPass" autocomplete="current-password" required />
+    </label>
+    <button type="submit" class="btn btn--primary btn--block">Masuk</button>
+    <p class="login-msg" id="loginMsg"></p>
+  </form>
+</div>
+
+<!-- ============ APLIKASI ============ -->
+<div class="app" id="appScreen" hidden>
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="login-logo">ITV</span>
+      <div><strong>Portal CMS</strong><small id="whoami">-</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav__item is-active" data-view="dashboard"><span>◧</span> Dashboard</button>
+      <button class="nav__item" data-view="articles"><span>✎</span> Artikel</button>
+      <button class="nav__item" data-view="seo"><span>⚙</span> SEO</button>
+      <button class="nav__item" data-view="branding"><span>◈</span> Branding</button>
+      <button class="nav__item" data-view="keywords"><span>⌕</span> Kata Kunci</button>
+      <button class="nav__item" data-view="analytics"><span>📈</span> Analitik</button>
+      <button class="nav__item" data-view="leads"><span>✉</span> Leads</button>
+    </nav>
+    <div class="sidebar__foot">
+      <a href="/" target="_blank" class="btn btn--ghost btn--block">Lihat Website</a>
+      <button class="btn btn--ghost btn--block" id="logoutBtn">Keluar</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view" id="view-dashboard">
+      <header class="view__head">
+        <h1>Dashboard</h1>
+        <p class="muted">Ringkasan performa website dan aktivitas pengunjung 30 hari terakhir.</p>
+      </header>
+
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Trafik 30 Hari Terakhir</h3>
+          <div class="chart" id="chartTraffic"></div>
+        </div>
+        <div class="card">
+          <h3>Perangkat Pengunjung</h3>
+          <div id="deviceList" class="bar-list"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Halaman Terpopuler</h3>
+          <div id="topPages" class="bar-list"></div>
+        </div>
+        <div class="card">
+          <h3>Sumber Trafik (Referrer)</h3>
+          <div id="referrerList" class="bar-list"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Artikel Terpopuler</h3>
+          <div id="topArticles" class="bar-list"></div>
+        </div>
+        <div class="card">
+          <h3>Browser Pengunjung</h3>
+          <div id="browserList" class="bar-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ARTIKEL ============ -->
+    <section class="view" id="view-articles" hidden>
+      <header class="view__head">
+        <h1>Artikel</h1>
+        <p class="muted">Tulis, optimalkan, dan terbitkan konten website.</p>
+      </header>
+
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" id="articleSearch" placeholder="Cari artikel..." />
+          <select id="articleFilter">
+            <option value="">Semua status</option>
+            <option value="published">Terbit</option>
+            <option value="draft">Draf</option>
+            <option value="archived">Arsip</option>
+          </select>
+          <button class="btn btn--primary" id="newArticleBtn">+ Artikel Baru</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="articleTable">
+            <thead>
+              <tr><th>Judul</th><th>Kategori</th><th>Status</th><th>Views</th><th>SEO</th><th>Aksi</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FORM ARTIKEL ============ -->
+    <section class="view" id="view-editor" hidden>
+      <header class="view__head">
+        <h1 id="editorTitle">Artikel Baru</h1>
+        <p class="muted">Isi konten, atur metadata SEO, dan pilih kata kunci target.</p>
+      </header>
+
+      <form class="grid-editor" id="articleForm">
+        <div class="card">
+          <h3>Konten</h3>
+          <label>Judul artikel
+            <input type="text" name="title" required />
+          </label>
+          <label>Slug (URL)
+            <input type="text" name="slug" placeholder="otomatis dari judul" />
+          </label>
+          <label>Ringkasan
+            <textarea name="excerpt" rows="2" placeholder="Deskripsi singkat untuk daftar artikel"></textarea>
+          </label>
+          <label>Isi artikel
+            <textarea name="content" rows="14" placeholder="Tulis isi artikel di sini..."></textarea>
+          </label>
+          <div class="form-row">
+            <label>Kategori <input type="text" name="category" list="catList" /></label>
+            <label>Penulis <input type="text" name="author" /></label>
+          </div>
+          <datalist id="catList">
+            <option value="Teknologi"></option><option value="Solusi Bisnis"></option>
+            <option value="Case Study"></option><option value="Pengumatian"></option>
+          </datalist>
+          <label>Tag (pisahkan dengan koma)
+            <input type="text" name="tags" placeholder="itv, integrasi, sistem" />
+          </label>
+          <label>URL gambarcover
+            <input type="text" name="cover_image" placeholder="https://..." />
+          </label>
+        </div>
+
+        <div class="card">
+          <h3>Publikasi</h3>
+          <label>Status
+            <select name="status">
+              <option value="draft">Draf</option>
+              <option value="published">Terbit</option>
+              <option value="archived">Arsip</option>
+            </select>
+          </label>
+          <label>Tanggal terbit <input type="datetime-local" name="published_at" /></label>
+        </div>
+
+        <div class="card">
+          <h3>SEO Artikel</h3>
+          <label>Meta title <input type="text" name="seo_title" maxlength="70" /><small id="seoTitleCount">0/70</small></label>
+          <label>Meta description <textarea name="seo_description" rows="3" maxlength="160"></textarea><small id="seoDescCount">0/160</small></label>
+          <label>Focus keyword <input type="text" name="focus_keyword" /></label>
+          <label>Kata kunci artikel
+            <input type="text" name="keywords" placeholder="pisahkan dengan koma" />
+          </label>
+          <div class="preview" id="serpPreview"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn--ghost" id="cancelEdit">Batal</button>
+          <button type="submit" class="btn btn--primary">Simpan Artikel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ SEO ============ -->
+    <section class="view" id="view-seo" hidden>
+      <header class="view__head">
+        <h1>Konfigurasi SEO</h1>
+        <p class="muted>Meta tag, Open Graph, robots.txt, sitemap, dan JSON-LD.</p>
+      </header>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Meta Utama</h3>
+          <label>Judul situs <input type="text" data-setting="seo.site_title" /></label>
+          <label>Title template <input type="text" data-setting="seo.title_template" /></label>
+          <label>Meta description <textarea rows="3" data-setting="seo.meta_description"></textarea></label>
+          <label>Meta keywords <input type="text" data-setting="seo.meta_keywords" /></label>
+          <label>Canonical base <input type="text" data-setting="seo.canonical_base" /></label>
+        </div>
+
+        <div class="card">
+          <h3>Open Graph & Twitter</h3>
+          <label>OG image <input type="text" data-setting="seo.og_image" /></label>
+          <label>OG type <input type="text" data-setting="seo.og_type" /></label>
+          <label>Twitter card <input type="text" data-setting="seo.twitter_card" /></label>
+          <label>Twitter site <input type="text" data-setting="seo.twitter_site" /></label>
+          <label>Google site verification <input type="text" data-setting="seo.google_site_verification" /></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>robots.txt</h3>
+        <label class="inline"><input type="checkbox" data-setting="seo.sitemap_enabled" data-type="bool" /> Aktifkan sitemap.xml</label>
+        <textarea rows="6" data-setting="seo.robots_txt"></textarea>
+      </div>
+
+      <div class="card">
+        <h3>Schema.org (JSON-LD)</h3>
+        <textarea rows="10" data-setting="seo.schema_org"></textarea>
+      </div>
+
+      <div class="card">
+        <h3>Audit SEO</h3>
+        <div class="score-wrap">
+          <div class="score" id="seoScore">0</div>
+          <div id="seoChecks" class="checks"></div>
+        </div>
+        <h4>Skor SEO per artikel</h4>
+        <div class="table-wrap">
+          <table class="table" id="seoArticleTable">
+            <thead><tr><th>Artikel</th><th>Skor</th><th>Masalah</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-actions"><button class="btn btn--primary" data-save-group="seo">Simpan Pengaturan SEO</button></div>
+    </section>
+
+    <!-- ============ BRANDING ============ -->
+    <section class="view" id="view-branding" hidden>
+      <header class="view__head">
+        <h1>Branding</h1>
+        <p class="muted">Identitas visual dan informasi kontak perusahaan.</p>
+      </header>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Identitas</h3>
+          <label>Nama perusahaan <input type="text" data-setting="brand.company_name" /></label>
+          <label>Logo teks <input type="text" data-setting="brand.logo_text" /></label>
+          <label>Tagline <input type="text" data-setting="brand.tagline" /></label>
+          <label>Warna utama <input type="color" data-setting="brand.primary_color" data-type="color" /></label>
+          <label>Warna sekunder <input type="color" data-setting="brand.secondary_color" data-type="color" /></label>
+          <label>Warna gelap <input type="color" data-setting="brand.dark_color" data-type="color" /></label>
+        </div>
+
+        <div class="card">
+          <h3>Kontak</h3>
+          <label>Email <input type="text" data-setting="brand.email" /></label>
+          <label>Telepon <input type="text" data-setting="brand.phone" /></label>
+          <label>Website <input type="text" data-setting="brand.website" /></label>
+          <label>Alamat <textarea rows="4" data-setting="brand.address"></textarea></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Pratinjau Langsung</h3>
+        <div class="preview-brand" id="brandPreview">
+          <div class="preview-brand__bar" id="pbBar">
+            <span class="preview-brand__logo" id="pbLogo">ITV</span>
+            <span id="pbTagline">Tagline perusahaan</span>
+          </div>
+          <div class="preview-brand__body">
+            <h4 id="pbName">Nama Perusahaan</h4>
+            <p id="pbContact">email • telepon • alamat</p>
+            <button class="btn btn--primary" type="button">Tombol Utama</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions"><button class="btn btn--primary" data-save-group="branding">Simpan Pengaturan Branding</button></div>
+    </section>
+
+    <!-- ============ KATA KUNCI ============ -->
+    <section class="view" id="view-keywords" hidden>
+      <header class="view__head">
+        <h1>Kata Kunci</h1>
+        <p class="muted">Target keyword, volume pencarian, kesulitan, dan posisi peringkat.</p>
+      </header>
+
+      <div class="card">
+        <h3>Tambah / Perbarui Kata Kunci</h3>
+        <form class="grid-form" id="keywordForm">
+          <input type="hidden" name="id" />
+          <label>Kata kunci <input type="text" name="keyword" required /></label>
+          <label>Volume pencarian <input type="number" name="search_volume" min="0" /></label>
+          <label>Kesulitan (0-100) <input type="number" name="difficulty" min="0" max="100" /></label>
+          <label>Peringkat saat ini <input type="number" name="current_rank" min="1" /></label>
+          <label>Target URL <input type="text" name="target_url" /></label>
+          <label>Intent
+            <select name="intent">
+              <option value="informational">Informational</option>
+              <option value="commercial">Commercial</option>
+              <option value="transactional">Transactional</option>
+              <option value="navigational">Navigational</option>
+            </select>
+          </label>
+          <label>Status
+            <select name="status"><option value="tracked">Tracked</option><option value="improving">Improving</option><option value="declining">Declining</option><option value="won">Won</option></select>
+          </label>
+          <label>Catatan <input type="text" name="notes" /></label>
+          <button type="submit" class="btn btn--primary">Simpan</button>
+          <button type="button" class="btn btn--ghost" id="resetKeyword">Reset</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input type="search" id="keywordSearch" placeholder="Cari kata kunci..." />
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="keywordTable">
+            <thead><tr><th>Kata Kunci</th><th>Volume</th><th>Kesulitan</th><th>Peringkat</th><th>Intent</th><th>Artikel</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ANALITIK ============ -->
+    <section class="view" id="view-analytics" hidden>
+      <header class="view__head">
+        <h1>Analitik Website</h1>
+        <p class="muted">Indikator trafik, perilaku pengunjung, dan jam sibuk.</p>
+      </header>
+
+      <div class="card">
+        <div class="toolbar">
+          <label class="inline">Periode
+            <select id="rangeDays"><option value="7">7 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option><option value="365">1 tahun</option></select>
+          </label>
+          <button class="btn btn--primary" id="refreshAnalytics">Muat Ulang</button>
+        </div>
+        <div class="kpi-grid" id="kpiAnalytics"></div>
+      </div>
+
+      <div class="card">
+        <h3>Jam Sibuk Pengunjung</h3>
+        <div id="hourChart" class="chart"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Per/pages per Kanal</h3>
+          <div id="channelList" class="bar-list"></div>
+        </div>
+        <div class="card">
+          <h3>Event Pelacakan</h3>
+          <div id="eventList" class="bar-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LEADS ============ -->
+    <section class="view" id="view-leads" hidden>
+      <header class="view__head">
+        <h1>Leads Masuk</h1>
+        <p class="muted">Permintaan konsultasi dari formulir website.</p>
+      </header>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="table" id="leadTable">
+            <thead><tr><th>Nama</th><th>Perusahaan</th><th>Kontak</th><th>Minat</th><th>Status</th><th>Tanggal</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

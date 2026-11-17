@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { query, parseJson, checkConnection } from './db.js';
+import cmsRouter from './cms-api.js';
+import { purgeExpiredSessions } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
@@ -115,6 +117,122 @@ app.get('/api/leads', async (_req, res, next) => {
       'SELECT id, full_name, company, email, phone, sector, service, status, created_at FROM leads ORDER BY id DESC LIMIT 100'
     );
     res.json(rows);
+  } catch (e) { next(e); }
+});
+
+// ---- Portal CMS (analisis, artikel, SEO, branding, kata kunci) ----
+app.use('/api', cmsRouter);
+
+// Konfigurasi situs publik (branding + SEO) untuk rendering di website
+app.get('/api/site-config', async (_req, res, next) => {
+  try {
+    const rows = await query('SELECT setting_group, setting_key, setting_value FROM site_settings');
+    const out = { branding: {}, seo: {} };
+    rows.forEach((r) => {
+      const group = r.setting_group === 'branding' ? 'branding' : 'seo';
+      out[group][r.setting_key] = r.setting_value;
+    });
+    res.json(out);
+  } catch (e) { next(e); }
+});
+
+// Artikel terbit (untuk halaman artikel publik)
+app.get('/api/articles', async (req, res, next) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 6, 50);
+    const rows = await query(
+      `SELECT slug, title, excerpt, cover_image, category, tags, author, published_at, views
+       FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT ${limit}`
+    );
+    res.json(rows.map((r) => ({ ...r, tags: parseJson(r.tags, []) })));
+  } catch (e) { next(e); }
+});
+
+app.get('/api/articles/:slug', async (req, res, next) => {
+  try {
+    const rows = await query(
+      `SELECT slug, title, excerpt, content, cover_image, category, tags, author, published_at, views
+       FROM articles WHERE slug = ? AND status = 'published' LIMIT 1`,
+      [req.params.slug]
+    );
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'artikel tidak ditemukan' });
+    await query('UPDATE articles SET views = views + 1 WHERE slug = ?', [req.params.slug]);
+    const article = { ...rows[0], tags: parseJson(rows[0].tags, []) };
+    article.views = Number(article.views || 0) + 1;
+    res.json(article);
+  } catch (e) { next(e); }
+});
+
+// Endpoint pelacakan versi ringkas (dipakai website)
+app.post('/api/track', async (req, res, next) => {
+  req.url = '/cms/track';
+  cmsRouter.handle(req, res, next);
+});
+
+app.post('/api/track/event', async (req, res, next) => {
+  req.url = '/cms/track-event';
+  cmsRouter.handle(req, res, next);
+});
+
+// ---- robots.txt & sitemap.xml (didorong oleh pengaturan SEO) ----
+async function readSeoSetting(key, fallback = '') {
+  const rows = await query(
+    'SELECT setting_value FROM site_settings WHERE setting_key = ? LIMIT 1',
+    [key]
+  );
+  return rows.length && rows[0].setting_value != null ? String(rows[0].setting_value) : fallback;
+}
+
+app.get('/robots.txt', async (_req, res, next) => {
+  try {
+    const enabled = (await readSeoSetting('seo.sitemap_enabled', '0')).trim();
+    if (enabled !== '1' && enabled.toLowerCase() !== 'true') {
+      res.type('text/plain').send('User-agent: *\nDisallow: /\n');
+      return;
+    }
+    const body = await readSeoSetting(
+      'seo.robots_txt',
+      'User-agent: *\nAllow: /\nSitemap: https://www.integrasiteknologivisual.com/sitemap.xml\n'
+    );
+    res.type('text/plain').send(body);
+  } catch (e) { next(e); }
+});
+
+app.get('/sitemap.xml', async (_req, res, next) => {
+  try {
+    const enabled = (await readSeoSetting('seo.sitemap_enabled', '0')).trim();
+    if (enabled !== '1' && enabled.toLowerCase() !== 'true') {
+      res.status(404).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?>\n<urlset></urlset>');
+      return;
+    }
+    const base = (await readSeoSetting('seo.canonical_base', 'https://www.integrasiteknologivisual.com')).replace(/\/$/, '');
+    const articles = await query(
+      "SELECT slug, published_at, updated_at FROM articles WHERE status = 'published' ORDER BY published_at DESC"
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    const urls = [
+      { loc: `${base}/`, lastmod: today, priority: '1.0' },
+      { loc: `${base}/#layanan`, lastmod: today, priority: '0.9' },
+      { loc: `${base}/#produk`, lastmod: today, priority: '0.9' },
+      { loc: `${base}/#sektor`, lastmod: today, priority: '0.8' },
+      { loc: `${base}/#insight`, lastmod: today, priority: '0.8' },
+      { loc: `${base}/#kontak`, lastmod: today, priority: '0.7' },
+      ...articles.map((a) => ({
+        loc: `${base}/artikel.html?slug=${encodeURIComponent(a.slug)}`,
+        lastmod: String(a.updated_at || a.published_at || today).slice(0, 10),
+        priority: '0.6'
+      }))
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+  .map(
+    (u) =>
+      `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`
+  )
+  .join('\n')}
+</urlset>`;
+    res.type('application/xml').send(xml);
   } catch (e) { next(e); }
 });
 

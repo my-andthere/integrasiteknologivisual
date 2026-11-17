@@ -4,13 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { pool } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const raw = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 
 // Buang baris komentar (-- ...)
-const withoutComments = raw
-  .split('\n')
-  .filter((line) => !/^\s*--/.test(line))
-  .join('\n');
+function stripComments(sql) {
+  return sql
+    .split('\n')
+    .filter((line) => !/^\s*--/.test(line))
+    .join('\n');
+}
 
 /** Pisah statement pada ';' di luar literal string & backtick. */
 function splitStatements(sql) {
@@ -39,10 +40,18 @@ function splitStatements(sql) {
   return out;
 }
 
-const statements = splitStatements(withoutComments);
+const files = ['schema.sql', 'schema-cms.sql'];
+let total = 0;
 
-for (const stmt of statements) {
-  await pool.query(stmt);
+for (const file of files) {
+  const raw = fs.readFileSync(path.join(__dirname, file), 'utf8');
+  const statements = splitStatements(stripComments(raw));
+  for (const stmt of statements) {
+    await pool.query(stmt);
+  }
+  total += statements.length;
+  console.log(`✔ ${file} — ${statements.length} statement dieksekusi`);
 }
-console.log(`✔ ${statements.length} statement dieksekusi — schema & seed data siap.`);
+
+console.log(`✔ Total ${total} statement dieksekusi — schema, seed data & CMS siap.`);
 await pool.end();

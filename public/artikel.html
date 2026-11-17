@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artikel — PT. Integration Teknologi Visual</title>
+  <meta name="description" content="Artikel dan wawasan terbaru dari PT. Integration Teknologi Visual." />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Artikel — PT. Integration Teknologi Visual" />
+  <meta property="og:description" content="Artikel dan wawasan terbaru dari PT. Integration Teknologi Visual." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://www.integrasiteknologivisual.com" />
+  <script type="application/ld+json" id="schemaOrg">{}</script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="wrap nav">
+    <a href="/" class="brand">
+      <span class="brand__mark" data-brand="logo">ITV</span>
+      <span class="brand__text">
+        <span data-brand="company">Integration Teknologi Visual</span>
+        <small data-brand="tagline">Enterprise Digital Solution Partner</small>
+      </span>
+    </a>
+    <nav class="nav__links" id="navLinks">
+      <a href="/#tentang">Tentang</a>
+      <a href="/#layanan">Layanan</a>
+      <a href="/#produk">Produk</a>
+      <a href="/#sektor">Sektor</a>
+      <a href="/#insight">Insight</a>
+      <a href="/#kontak">Kontak</a>
+    </nav>
+    <a href="/#kontak" class="btn btn--primary" data-track="cta_artikel_kontak">Konsultasi Gratis</a>
+    <button class="nav__toggle" id="navToggle" aria-label="Buka menu">&#9776;</button>
+  </div>
+</header>
+
+<main class="article-page">
+  <div class="wrap">
+    <a href="/#insight" class="back-link">&larr; Kembali ke daftar artikel</a>
+    <div id="articleRoot">
+      <p class="muted">Memuat artikel…</p>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__bottom">
+      <span>&copy; <span id="year">2026</span> PT. Integration Teknologi Visual. Seluruh hak cipta dilindungi.</span>
+      <span>Profesional &middot; Edukatif &middot; Konsultatif &middot; Solutif</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const API = '/api';
+
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function formatDate(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function applyBranding(brand) {
+    const root = document.documentElement;
+    const val = (key) => String(brand[key] || '').trim();
+    const map = {
+      'brand.primary_color': '--blue',
+      'brand.secondary_color': '--cyan',
+      'brand.dark_color': '--navy'
+    };
+    Object.entries(map).forEach(([key, cssVar]) => {
+      const color = val(key);
+      if (!color) return;
+      if (!/^#[0-9a-f]{3,8}$/i.test(color) && !/^rgba?\(/i.test(color)) return;
+      root.style.setProperty(cssVar, color);
+    });
+    document.querySelectorAll('[data-brand="logo"]').forEach((n) => (n.textContent = val('brand.logo_text') || n.textContent));
+    document.querySelectorAll('[data-brand="company"]').forEach((n) => (n.textContent = val('brand.company_name') || n.textContent));
+    document.querySelectorAll('[data-brand="tagline"]').forEach((n) => (n.textContent = val('brand.tagline') || n.textContent));
+  }
+
+  function applySeo(seo) {
+    const val = (key) => String(seo[key] || '').trim();
+    const title = val('seo.site_title');
+    const desc = val('seo.meta_description');
+    if (title) document.title = title;
+    if (desc) {
+      let m = document.head.querySelector('meta[name="description"]');
+      if (m) m.setAttribute('content', desc);
+    }
+    const canonical = val('seo.canonical_base');
+    if (canonical) {
+      let l = document.head.querySelector('link[rel="canonical"]');
+      if (l) l.setAttribute('href', canonical);
+    }
+    const schema = document.getElementById('schemaOrg');
+    const raw = val('seo.schema_org');
+    if (schema && raw) {
+      try {
+        schema.textContent = JSON.stringify(JSON.parse(raw), null, 2);
+      } catch {
+        schema.textContent = raw;
+      }
+    }
+  }
+
+  async function loadConfig() {
+    try {
+      const cfg = await fetch(API + '/site-config').then((r) => r.json());
+      applyBranding(cfg.branding || {});
+      applySeo(cfg.seo || {});
+    } catch { /* abaikan */ }
+  }
+
+  async function loadArticle() {
+    const root = document.getElementById('articleRoot');
+    const slug = new URLSearchParams(window.location.search).get('slug');
+    if (!slug) {
+      root.innerHTML = '<p class="muted">Parameter slug artikel tidak ditemukan.</p>';
+      return;
+    }
+    try {
+      const a = await fetch(API + '/articles/' + encodeURIComponent(slug)).then((r) => {
+        if (!r.ok) throw new Error('not-found');
+        return r.json();
+      });
+      document.title = `${a.title} — PT. Integration Teknologi Visual`;
+      const meta = document.head.querySelector('meta[name="description"]');
+      if (meta && a.excerpt) meta.setAttribute('content', a.excerpt);
+      const og = document.head.querySelector('meta[property="og:title"]');
+      if (og) og.setAttribute('content', a.title);
+
+      const tags = Array.isArray(a.tags) ? a.tags : [];
+      root.innerHTML = `
+        <article>
+          <div class="article-page__head">
+            <span class="eyebrow">${esc(a.category || 'Insight')}</span>
+            <h1 style="font-size:clamp(1.6rem,3.4vw,2.4rem)">${esc(a.title)}</h1>
+            <p class="lead">${esc(a.excerpt || '')}</p>
+            <div class="article-card__meta">
+              <span>${esc(formatDate(a.published_at))}</span>
+              ${a.author ? `<span>${esc(a.author)}</span>` : ''}
+              <span>${Number(a.views || 0)}× dibaca</span>
+            </div>
+            <div class="article-tags">
+              ${tags.map((t) => `<span class="article-tag">${esc(t)}</span>`).join('')}
+            </div>
+          </div>
+          <div class="article-page__cover"></div>
+          <div class="article-page__body">${a.content || ''}</div>
+        </article>`;
+
+      // pelacakan
+      const sid = (() => {
+        try {
+          const k = 'itv_sid';
+          let v = sessionStorage.getItem(k);
+          if (!v) { v = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem(k, v); }
+          return v;
+        } catch { return 'anon-' + Date.now(); }
+      })();
+      const payload = JSON.stringify({ path: window.location.pathname, referrer: document.referrer || '', session_id: sid, duration: 0 });
+      try {
+        if (navigator.sendBeacon) navigator.sendBeacon(API + '/track', new Blob([payload], { type: 'application/json' }));
+        else fetch(API + '/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
+      } catch { /* abaikan */ }
+    } catch {
+      root.innerHTML = '<p class="muted">Artikel tidak ditemukan atau belum dipublikasikan.</p>';
+    }
+  }
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+  loadConfig();
+  loadArticle();
+</script>
+</body>
+</html>
