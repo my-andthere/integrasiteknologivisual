@@ -29,7 +29,7 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 
 ### Portal CMS (`/admin`)
 - **Login** dengan session token (Bearer) + tabel `cms_sessions`.
-- **Dashboard**: KPI pageview 30 hari, pengunjung unik, rata-rata durasi, lead, artikel, kata kunci.
+- **Dashboard**: KPI pageview 30 hari, pengunjung unik, rata-rata durasi, lead, artikel, kata kunci, klien/mitra.
 - **Analitik pengunjung**: pageview per halaman, timeseries, sumber/referrer, perangkat, browser, OS.
 - **Manajemen artikel**: CRUD lengkap (judul, slug, ringkasan, konten, cover, kategori, tag,
   status draft/published, tanggal terbit), plus skor SEO per artikel.
@@ -41,6 +41,9 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 - **Indikator kata kunci**: CRUD target keyword (volume, difficulty, rank, URL target, intent,
   status) + pencatatan riwayat peringkat.
 - **Manajemen lead**: daftar prospek beserta perubahan status (`new`, `contacted`, `won`, `lost`).
+- **Manajemen Klien & Mitra**: CRUD penuh untuk tabel `clients` (nama, segmen, monogram, urutan, status
+  aktif) dan `partners` (nama, kategori, deskripsi, monogram, urutan, status aktif) — perubahan
+  langsung tampil pada section `#klien` di landing page. Slug dibuat otomatis dan dijamin unik.
 
 ---
 
@@ -164,6 +167,14 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | GET    | `/api/admin/seo/audit`         | Skor + pemeriksaan SEO                     |
 | GET/POST/PUT/DELETE | `/api/admin/keywords[...]` | CRUD kata kunci                      |
 | POST   | `/api/admin/keywords/:id/rank` | Catat peringkat baru                      |
+| GET    | `/api/admin/clients`           | Daftar klien + pilihan segmen        |
+| POST   | `/api/admin/clients`           | Tambah klien                          |
+| PUT    | `/api/admin/clients/:id`       | Ubah klien                            |
+| DELETE | `/api/admin/clients/:id`       | Hapus klien                          |
+| GET    | `/api/admin/partners`          | Daftar mitra + pilihan kategori      |
+| POST   | `/api/admin/partners`          | Tambah mitra                          |
+| PUT    | `/api/admin/partners/:id`      | Ubah mitra                            |
+| DELETE | `/api/admin/partners/:id`      | Hapus mitra                          |
 | GET    | `/api/admin/leads`             | Daftar prospek                             |
 | PUT    | `/api/admin/leads/:id`         | Ubah status prospek                        |
 

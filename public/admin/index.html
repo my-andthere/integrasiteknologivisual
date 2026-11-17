@@ -50,6 +50,7 @@
       <button class="nav__item" data-view="seo"><span><i class="bi bi-search"></i></span> SEO</button>
       <button class="nav__item" data-view="branding"><span><i class="bi bi-palette"></i></span> Branding</button>
       <button class="nav__item" data-view="keywords"><span><i class="bi bi-key"></i></span> Kata Kunci</button>
+      <button class="nav__item" data-view="clients"><span><i class="bi bi-buildings"></i></span> Klien &amp; Mitra</button>
       <button class="nav__item" data-view="analytics"><span><i class="bi bi-bar-chart-line"></i></span> Analitik</button>
       <button class="nav__item" data-view="leads"><span><i class="bi bi-envelope"></i></span> Leads</button>
     </nav>
@@ -341,6 +342,69 @@
         <div class="table-wrap">
           <table class="table" id="keywordTable">
             <thead><tr><th>Kata Kunci</th><th>Volume</th><th>Kesulitan</th><th>Peringkat</th><th>Intent</th><th>Artikel</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ KLIEN & MITRA ============ -->
+    <section class="view" id="view-clients" hidden>
+      <header class="view__head">
+        <h1>Klien &amp; Mitra</h1>
+        <p class="muted">Kelola daftar klien per industri dan mitra/ekosistem teknologi yang tampil di section "Industri yang Kami Layani".</p>
+      </header>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Tambah / Perbarui Klien</h3>
+          <form class="grid-form" id="clientForm">
+            <input type="hidden" name="id" />
+            <label>Nama / segmen industri <input type="text" name="name" required maxlength="160" /></label>
+            <label>Industri
+              <select name="segment" id="clientSegment"></select>
+            </label>
+            <label>Inisial <input type="text" name="initials" maxlength="8" placeholder="RN" /></label>
+            <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
+            <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+            <button type="submit" class="btn btn--primary">Simpan</button>
+            <button type="button" class="btn btn--ghost" id="resetClient">Reset</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Tambah / Perbarui Mitra</h3>
+          <form class="grid-form" id="partnerForm">
+            <input type="hidden" name="id" />
+            <label>Nama mitra <input type="text" name="name" required maxlength="160" /></label>
+            <label>Kategori
+              <select name="category" id="partnerCategory"></select>
+            </label>
+            <label>Inisial <input type="text" name="initials" maxlength="8" placeholder="PR" /></label>
+            <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
+            <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+            <label>Deskripsi <input type="text" name="description" maxlength="255" placeholder="Ringkasan singkat peran mitra" /></label>
+            <button type="submit" class="btn btn--primary">Simpan</button>
+            <button type="button" class="btn btn--ghost" id="resetPartner">Reset</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Klien</h3>
+        <div class="table-wrap">
+          <table class="table" id="clientTable">
+            <thead><tr><th>Nama</th><th>Industri</th><th>Inisial</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Mitra</h3>
+        <div class="table-wrap">
+          <table class="table" id="partnerTable">
+            <thead><tr><th>Nama</th><th>Kategori</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

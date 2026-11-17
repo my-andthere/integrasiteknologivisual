@@ -11,14 +11,14 @@ import { login, logout, requireAuth, resolveSession, visitorFingerprint } from '
 
 const router = express.Router();
 
-const slugify = (text) =>
+const slugify = (text, fallback = 'artikel') =>
   String(text || '')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 180) || 'artikel';
+    .slice(0, 180) || fallback;
 
 const UA_BROWSERS = [
   [/Edg\//, 'Edge'],
@@ -108,6 +108,8 @@ router.get('/admin/dashboard', async (_req, res, next) => {
         (SELECT COUNT(*) FROM articles WHERE status = 'published') AS articles_published,
         (SELECT COUNT(*) FROM articles) AS articles_total,
         (SELECT COUNT(*) FROM keywords) AS keywords_total,
+        (SELECT COUNT(*) FROM clients) AS clients_total,
+        (SELECT COUNT(*) FROM partners) AS partners_total,
         (SELECT AVG(duration) FROM page_views WHERE created_at >= NOW() - INTERVAL 30 DAY) AS avg_duration,
         (SELECT COUNT(*) FROM analytics_events WHERE created_at >= NOW() - INTERVAL 30 DAY) AS events_30d`
     );
@@ -315,6 +317,124 @@ router.delete('/admin/articles/:id', async (req, res, next) => {
   try {
     await query('DELETE FROM articles WHERE id = ?', [req.params.id]);
     res.json({ ok: true, message: 'Artikel dihapus' });
+  } catch (e) { next(e); }
+});
+
+/* =========================================================
+   KLIEN & MITRA (CRUD)
+   ========================================================= */
+const CLIENT_SEGMENTS = [
+  'Retail', 'Manufacturing', 'Financial Services', 'Government', 'Healthcare',
+  'Logistics', 'Hospitality', 'Education', 'Telco', 'Energy'
+];
+const PARTNER_CATEGORIES = [
+  'Hardware', 'Infrastructure', 'Fintech', 'Software', 'Partnership', 'Delivery', 'Operations', 'Service'
+];
+
+function uniqueSlug(rows, candidate, ignoreId = 0, fallback = 'klien') {
+  let slug = slugify(candidate, fallback);
+  const taken = rows.some((r) => r.slug === slug && Number(r.id) !== Number(ignoreId));
+  if (!taken) return slug;
+  let i = 2;
+  while (rows.some((r) => r.slug === `${slug}-${i}` && Number(r.id) !== Number(ignoreId))) i += 1;
+  return `${slug}-${i}`;
+}
+
+router.get('/admin/clients', async (_req, res, next) => {
+  try {
+    const clients = await query(
+      `SELECT id, slug, name, segment, initials, sort_order, is_active
+       FROM clients ORDER BY sort_order, id`
+    );
+    res.json({ ok: true, clients, segments: CLIENT_SEGMENTS });
+  } catch (e) { next(e); }
+});
+
+async function saveClient(req, res, next, clientId = null) {
+  try {
+    const b = req.body || {};
+    const name = String(b.name || '').trim();
+    if (!name) return res.status(422).json({ ok: false, error: 'nama klien wajib diisi' });
+
+    const all = await query('SELECT id, slug FROM clients');
+    const slug = uniqueSlug(all, b.slug || name, clientId || 0, 'klien');
+    const segment = String(b.segment || 'Lainnya').trim().slice(0, 80);
+    const initials = String(b.initials || name.slice(0, 2)).trim().toUpperCase().slice(0, 8) || 'ITV';
+    const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
+    const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+
+    if (clientId) {
+      await query(
+        `UPDATE clients SET slug=?, name=?, segment=?, initials=?, sort_order=?, is_active=? WHERE id=?`,
+        [slug, name.slice(0, 160), segment, initials, sortOrder, isActive, clientId]
+      );
+      return res.json({ ok: true, id: clientId, message: 'Klien diperbarui' });
+    }
+    const result = await query(
+      `INSERT INTO clients (slug, name, segment, initials, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
+      [slug, name.slice(0, 160), segment, initials, sortOrder, isActive]
+    );
+    res.json({ ok: true, id: result.insertId, message: 'Klien dibuat' });
+  } catch (e) { next(e); }
+}
+
+router.post('/admin/clients', (req, res, next) => saveClient(req, res, next, null));
+router.put('/admin/clients/:id', (req, res, next) => saveClient(req, res, next, Number(req.params.id)));
+
+router.delete('/admin/clients/:id', async (req, res, next) => {
+  try {
+    await query('DELETE FROM clients WHERE id = ?', [req.params.id]);
+    res.json({ ok: true, message: 'Klien dihapus' });
+  } catch (e) { next(e); }
+});
+
+router.get('/admin/partners', async (_req, res, next) => {
+  try {
+    const partners = await query(
+      `SELECT id, slug, name, category, description, initials, sort_order, is_active
+       FROM partners ORDER BY sort_order, id`
+    );
+    res.json({ ok: true, partners, categories: PARTNER_CATEGORIES });
+  } catch (e) { next(e); }
+});
+
+async function savePartner(req, res, next, partnerId = null) {
+  try {
+    const b = req.body || {};
+    const name = String(b.name || '').trim();
+    if (!name) return res.status(422).json({ ok: false, error: 'nama mitra wajib diisi' });
+
+    const all = await query('SELECT id, slug FROM partners');
+    const slug = uniqueSlug(all, b.slug || name, partnerId || 0, 'mitra');
+    const category = String(b.category || 'Software').trim().slice(0, 80);
+    const description = b.description ? String(b.description).trim().slice(0, 255) : null;
+    const initials = String(b.initials || name.slice(0, 2)).trim().toUpperCase().slice(0, 8) || 'PR';
+    const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
+    const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+
+    if (partnerId) {
+      await query(
+        `UPDATE partners SET slug=?, name=?, category=?, description=?, initials=?, sort_order=?, is_active=? WHERE id=?`,
+        [slug, name.slice(0, 160), category, description, initials, sortOrder, isActive, partnerId]
+      );
+      return res.json({ ok: true, id: partnerId, message: 'Mitra diperbarui' });
+    }
+    const result = await query(
+      `INSERT INTO partners (slug, name, category, description, initials, sort_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [slug, name.slice(0, 160), category, description, initials, sortOrder, isActive]
+    );
+    res.json({ ok: true, id: result.insertId, message: 'Mitra dibuat' });
+  } catch (e) { next(e); }
+}
+
+router.post('/admin/partners', (req, res, next) => savePartner(req, res, next, null));
+router.put('/admin/partners/:id', (req, res, next) => savePartner(req, res, next, Number(req.params.id)));
+
+router.delete('/admin/partners/:id', async (req, res, next) => {
+  try {
+    await query('DELETE FROM partners WHERE id = ?', [req.params.id]);
+    res.json({ ok: true, message: 'Mitra dihapus' });
   } catch (e) { next(e); }
 });
 

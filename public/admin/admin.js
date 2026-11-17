@@ -107,6 +107,7 @@
       seo: loadSeo,
       branding: loadBranding,
       keywords: loadKeywords,
+      clients: loadClientsPartners,
       analytics: loadAnalytics,
       leads: loadLeads
     };
@@ -127,7 +128,8 @@
       { label: 'Rata-rata Durasi', value: `${fmt(Math.round(s.avg_duration))} dtk`, hint: 'per kunjungan' },
       { label: 'Leads 30 hari', value: fmt(s.leads_30d), hint: `${fmt(s.leads_new)} baru` },
       { label: 'Artikel Terbit', value: `${fmt(s.articles_published)}/${fmt(s.articles_total)}`, hint: 'artikel aktif' },
-      { label: 'Kata Kunci Dipantau', value: fmt(s.keywords_total), hint: 'target SEO' }
+      { label: 'Kata Kunci Dipantau', value: fmt(s.keywords_total), hint: 'target SEO' },
+      { label: 'Klien & Mitra', value: `${fmt(s.clients_total)}/${fmt(s.partners_total)}`, hint: 'klien / mitra' }
     ];
     $('#kpiGrid').innerHTML = cards.map((c) => `
       <div class="kpi">
@@ -464,6 +466,175 @@
 
   $('#resetKeyword').addEventListener('click', () => {
     const form = $('#keywordForm');
+    form.reset();
+    form.id.value = '';
+  });
+
+  /* ---------------- klien & mitra ---------------- */
+  let allClients = [];
+  let allPartners = [];
+
+  function fillOptions(select, values, current) {
+    if (!select) return;
+    const unique = Array.from(new Set(values.filter(Boolean)));
+    if (current && !unique.includes(current)) unique.unshift(current);
+    select.innerHTML = unique.map((v) => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+    if (current) select.value = current;
+  }
+
+  function ensureOption(select, value) {
+    if (!select || !value) return;
+    if (Array.from(select.options).some((o) => o.value === value)) {
+      select.value = value;
+      return;
+    }
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = value;
+    select.appendChild(opt);
+    select.value = value;
+  }
+
+  async function loadClientsPartners() {
+    const [c, p] = await Promise.all([api('/admin/clients'), api('/admin/partners')]);
+    allClients = c.clients || [];
+    allPartners = p.partners || [];
+    fillOptions($('#clientSegment'), c.segments || [], 'Retail');
+    fillOptions($('#partnerCategory'), p.categories || [], 'Software');
+    renderClients();
+    renderPartners();
+  }
+
+  function statusBadge(isActive) {
+    return Number(isActive) === 1
+      ? '<span class="badge badge--published">Aktif</span>'
+      : '<span class="badge badge--archived">Nonaktif</span>';
+  }
+
+  function renderClients() {
+    const tb = $('#clientTable tbody');
+    tb.innerHTML = allClients.length ? allClients.map((cl) => `
+      <tr>
+        <td><strong>${escapeHtml(cl.name)}</strong><br><small>/${escapeHtml(cl.slug)}</small></td>
+        <td>${escapeHtml(cl.segment)}</td>
+        <td>${escapeHtml(cl.initials)}</td>
+        <td>${fmt(cl.sort_order)}</td>
+        <td>${statusBadge(cl.is_active)}</td>
+        <td>
+          <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${cl.id}">Edit</button>
+          <button class="btn btn--ghost btn--sm" data-act="del" data-id="${cl.id}">Hapus</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada klien.</td></tr>';
+
+    $$('#clientTable [data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const cl = allClients.find((x) => String(x.id) === String(btn.dataset.id));
+        if (btn.dataset.act === 'edit') {
+          const form = $('#clientForm');
+          form.id.value = cl.id;
+          form.name.value = cl.name;
+          ensureOption(form.segment, cl.segment);
+          form.initials.value = cl.initials;
+          form.sort_order.value = cl.sort_order;
+          form.is_active.value = String(cl.is_active);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (!confirm('Hapus klien ini?')) return;
+          api(`/admin/clients/${btn.dataset.id}`, { method: 'DELETE' })
+            .then(() => { toast('Klien dihapus'); loadClientsPartners(); })
+            .catch((e) => toast(e.message));
+        }
+      });
+    });
+  }
+
+  function renderPartners() {
+    const tb = $('#partnerTable tbody');
+    tb.innerHTML = allPartners.length ? allPartners.map((pr) => `
+      <tr>
+        <td><strong>${escapeHtml(pr.name)}</strong><br><small>/${escapeHtml(pr.slug)}</small></td>
+        <td>${escapeHtml(pr.category)}</td>
+        <td>${escapeHtml(pr.description || '-')}</td>
+        <td>${fmt(pr.sort_order)}</td>
+        <td>${statusBadge(pr.is_active)}</td>
+        <td>
+          <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${pr.id}">Edit</button>
+          <button class="btn btn--ghost btn--sm" data-act="del" data-id="${pr.id}">Hapus</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada mitra.</td></tr>';
+
+    $$('#partnerTable [data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const pr = allPartners.find((x) => String(x.id) === String(btn.dataset.id));
+        if (btn.dataset.act === 'edit') {
+          const form = $('#partnerForm');
+          form.id.value = pr.id;
+          form.name.value = pr.name;
+          ensureOption(form.category, pr.category);
+          form.description.value = pr.description || '';
+          form.initials.value = pr.initials;
+          form.sort_order.value = pr.sort_order;
+          form.is_active.value = String(pr.is_active);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (!confirm('Hapus mitra ini?')) return;
+          api(`/admin/partners/${btn.dataset.id}`, { method: 'DELETE' })
+            .then(() => { toast('Mitra dihapus'); loadClientsPartners(); })
+            .catch((e) => toast(e.message));
+        }
+      });
+    });
+  }
+
+  $('#clientForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      name: form.name.value,
+      segment: form.segment.value,
+      initials: form.initials.value,
+      sort_order: num(form.sort_order.value),
+      is_active: form.is_active.value === '1'
+    };
+    try {
+      if (form.id.value) await api(`/admin/clients/${form.id.value}`, { method: 'PUT', body });
+      else await api('/admin/clients', { method: 'POST', body });
+      toast('Klien disimpan');
+      form.reset();
+      form.id.value = '';
+      loadClientsPartners();
+    } catch (err) { toast(err.message); }
+  });
+
+  $('#partnerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      name: form.name.value,
+      category: form.category.value,
+      description: form.description.value,
+      initials: form.initials.value,
+      sort_order: num(form.sort_order.value),
+      is_active: form.is_active.value === '1'
+    };
+    try {
+      if (form.id.value) await api(`/admin/partners/${form.id.value}`, { method: 'PUT', body });
+      else await api('/admin/partners', { method: 'POST', body });
+      toast('Mitra disimpan');
+      form.reset();
+      form.id.value = '';
+      loadClientsPartners();
+    } catch (err) { toast(err.message); }
+  });
+
+  $('#resetClient').addEventListener('click', () => {
+    const form = $('#clientForm');
+    form.reset();
+    form.id.value = '';
+  });
+
+  $('#resetPartner').addEventListener('click', () => {
+    const form = $('#partnerForm');
     form.reset();
     form.id.value = '';
   });
