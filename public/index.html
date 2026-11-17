@@ -36,12 +36,28 @@
     </a>
 
     <nav class="nav__links" id="navLinks">
-      <a href="#tentang">Tentang</a>
-      <a href="#layanan">Layanan</a>
-      <a href="#produk">Produk</a>
-      <a href="#sektor">Sektor</a>
-      <a href="#klien">Klien</a>
-      <a href="#mitra">Mitra</a>
+      <div class="nav__group" data-submenu>
+        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-solusi">
+          Solusi <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="nav__submenu" id="submenu-solusi">
+          <a href="#layanan">Layanan Utama</a>
+          <a href="#produk">Portfolio Solusi</a>
+          <a href="#sektor">Target Pelanggan</a>
+        </div>
+      </div>
+
+      <div class="nav__group" data-submenu>
+        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-perusahaan">
+          Perusahaan <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="nav__submenu" id="submenu-perusahaan">
+          <a href="#tentang">Tentang Kami</a>
+          <a href="#klien">Klien</a>
+          <a href="#mitra">Mitra</a>
+        </div>
+      </div>
+
       <a href="#insight">Insight</a>
       <a href="#proses">Proses</a>
       <a href="#kontak">Kontak</a>

@@ -11,6 +11,46 @@ if (toggle && links) {
   });
 }
 
+// Submenu (dropdown) pada navigasi header
+const navGroups = document.querySelectorAll('.nav__group[data-submenu]');
+
+navGroups.forEach((group) => {
+  const trigger = group.querySelector('.nav__link--toggle');
+  if (!trigger) return;
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    const isOpen = group.classList.contains('open');
+    navGroups.forEach((g) => {
+      g.classList.remove('open');
+      const t = g.querySelector('.nav__link--toggle');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      group.classList.add('open');
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  group.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      group.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.focus();
+    }
+  });
+});
+
+// Tutup submenu saat klik di luar header
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.nav__group[data-submenu]')) return;
+  navGroups.forEach((g) => {
+    g.classList.remove('open');
+    const t = g.querySelector('.nav__link--toggle');
+    if (t) t.setAttribute('aria-expanded', 'false');
+  });
+});
+
 // Animasi muncul saat scroll
 const revealEls = document.querySelectorAll('.reveal');
 
@@ -45,6 +85,19 @@ if ('IntersectionObserver' in window && sections.length) {
         if (!entry.isIntersecting) return;
         navAnchors.forEach((a) => {
           a.style.color = a.getAttribute('href') === `#${entry.target.id}` ? 'var(--blue)' : '';
+        });
+        // Tandai tombol submenu induk sebagai aktif
+        document.querySelectorAll('.nav__group[data-submenu]').forEach((g) => {
+          const active = g.querySelector(`a[href="#${entry.target.id}"]`);
+          const trigger = g.querySelector('.nav__link--toggle');
+          if (!trigger) return;
+          if (active) {
+            trigger.style.color = 'var(--blue)';
+            trigger.classList.add('is-active');
+          } else {
+            trigger.style.color = '';
+            trigger.classList.remove('is-active');
+          }
         });
       });
     },

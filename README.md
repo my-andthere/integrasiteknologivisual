@@ -12,6 +12,10 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 ### Website publik (`/`)
 - **Halaman korporat** (HTML5/CSS3/vanilla JS, tanpa build step): hero, layanan, produk,
   sektor, insight, proses, garansi, dan form konsultasi.
+- **Navigasi header ringkas dengan submenu (dropdown)**: 9 menu dipadatkan menjadi 5 item
+  tingkat atas — `Solusi` (Layanan/Produk/Sektor), `Perusahaan` (Tentang/Klien/Mitra),
+  `Insight`, `Proses`, `Kontak`. Dropdown terbuka saat hover di desktop dan berupa akordeon
+  pada tampilan mobile, dengan atribut ARIA `aria-expanded` dan navigasi keyboard (Esc).
 - **Banner slideshow (hero carousel)**: 4 slide otomatis (rotasi 6 detik) dengan tombol
   panah, indikator titik + progres animasi, swipe sentuh, navigasi keyboard, pause saat hover/fokus,
   dan dukungan `prefers-reduced-motion`.
