@@ -38,6 +38,29 @@ CREATE TABLE IF NOT EXISTS sectors (
   is_active     TINYINT(1)   NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS clients (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  slug          VARCHAR(80)  NOT NULL UNIQUE,
+  name          VARCHAR(160) NOT NULL,
+  segment       VARCHAR(80)  NOT NULL,
+  initials      VARCHAR(8)   NOT NULL DEFAULT 'ITV',
+  sort_order    INT          NOT NULL DEFAULT 0,
+  is_active     TINYINT(1)   NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS partners (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  slug          VARCHAR(80)  NOT NULL UNIQUE,
+  name          VARCHAR(160) NOT NULL,
+  category      VARCHAR(80)  NOT NULL,
+  description   VARCHAR(255) NULL,
+  initials      VARCHAR(8)   NOT NULL DEFAULT 'PR',
+  sort_order    INT          NOT NULL DEFAULT 0,
+  is_active     TINYINT(1)   NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE partners ADD COLUMN IF NOT EXISTS description VARCHAR(255) NULL;
+
 CREATE TABLE IF NOT EXISTS leads (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   full_name     VARCHAR(120) NOT NULL,
@@ -100,3 +123,27 @@ INSERT INTO sectors (slug, title, description, tags, sort_order) VALUES
 ('healthcare','Healthcare','Sistem informasi kesehatan, integrasi laboratorium, dan display informasi layanan.','SIMRS • Interop • Display',6),
 ('education','Hotel, Properti & Pendidikan','Digital signage di area publik, integrasi sistem reservasi, dan portal layanan internal.','Signage • Booking • Portal',7)
 ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description), tags = VALUES(tags), sort_order = VALUES(sort_order);
+
+INSERT INTO clients (slug, name, segment, initials, sort_order) VALUES
+('retail-nasional',      'Jaringan Retail Nasional',    'Retail',            'RN', 1),
+('grup-manufaktur',      'Grup Manufaktur',            'Manufacturing',     'GM', 2),
+('bank-keuangan',        'Bank & Institusi Keuangan',   'Financial Services','BK', 3),
+('pemerintah-daerah',    'Instansi Pemerintah Daerah',  'Government',        'PD', 4),
+('jaringan-rumah-sakit','Jaringan Rumah Sakit',        'Healthcare',        'RS', 5),
+('logistik-distribusi',  'Logistik & Distribusi',       'Logistics',         'LD', 6),
+('hotel-properti',       'Hotel & Properti',            'Hospitality',       'HP', 7),
+('kampus-pendidikan',    'Universitas & Kampus',       'Education',         'UK', 8),
+('operator-telkom',      'Operator Telekomunikasi',    'Telecommunications','OT', 9),
+('energi-utilitas',      'Perusahaan Energi & Utilitas','Energy',            'EU', 10)
+ON DUPLICATE KEY UPDATE name = VALUES(name), segment = VALUES(segment), initials = VALUES(initials), sort_order = VALUES(sort_order), is_active = 1;
+
+INSERT INTO partners (slug, name, category, description, initials, sort_order) VALUES
+('oem-display',        'OEM Display & Videotron',        'Hardware',        'Hardware display profesional, video wall, dan perangkat interaktif kelas enterprise.', 'OEM', 1),
+('cloud-datacenter',   'Cloud & Data Center',             'Infrastructure',  'Infrastruktur komputasi, storage, dan jaringan dengan standar ketersediaan tinggi.', 'CLD', 2),
+('payment-gateway',    'Payment Gateway',                 'Fintech',         'Integrasi pembayaran digital untuk e-commerce, service desk, dan transaksi internal.', 'PG', 3),
+('erp-bi-ecosystem',   'ERP & Business Intelligence',     'Software',        'Platform ERP, analitik bisnis, dan modul gestión untuk organisasi skala enterprise.', 'ERP', 4),
+('system-integrator',  'System Integrator Mitra',         'Partnership',     'Kolaborasi implementasi lintas domain untuk proyek multi-sistem dan multi-lokasi.', 'SI', 5),
+('av-specialist',      'Instalasi & AV Specialist',       'Delivery',        'Pemasangan dan commissioning perangkat AV, display, serta ruang kontrol profesional.', 'AV', 6),
+('security-monitoring','Security & Monitoring 24/7',      'Operations',      'Monitoring mainframe, sistem keamanan, dan respons insiden sepanjang hari.', 'SEC', 7),
+('support-maintenance','Support & Maintenance Terpadu',   'Service',         'Dukungan operasional, patch management, dan preventive maintenance berkala.', 'SM', 8)
+ON DUPLICATE KEY UPDATE name = VALUES(name), category = VALUES(category), description = VALUES(description), initials = VALUES(initials), sort_order = VALUES(sort_order), is_active = 1;

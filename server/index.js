@@ -70,6 +70,16 @@ app.get('/api/sectors', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+app.get('/api/clients', async (_req, res, next) => {
+  try {
+    const [clients, partners] = await Promise.all([
+      query('SELECT slug, name, segment, initials FROM clients WHERE is_active = 1 ORDER BY sort_order, id'),
+          query('SELECT slug, name, category, description, initials FROM partners WHERE is_active = 1 ORDER BY sort_order, id')
+    ]);
+    res.json({ clients, partners });
+  } catch (e) { next(e); }
+});
+
 app.get('/api/stats', async (_req, res, next) => {
   try {
     const rows = await query(
@@ -77,6 +87,8 @@ app.get('/api/stats', async (_req, res, next) => {
          (SELECT COUNT(*) FROM services WHERE is_active = 1) AS services,
          (SELECT COUNT(*) FROM products  WHERE is_active = 1) AS products,
          (SELECT COUNT(*) FROM sectors  WHERE is_active = 1) AS sectors,
+         (SELECT COUNT(*) FROM clients  WHERE is_active = 1) AS clients,
+         (SELECT COUNT(*) FROM partners WHERE is_active = 1) AS partners,
          (SELECT COUNT(*) FROM leads)                    AS leads`
     );
     res.json(rows[0]);

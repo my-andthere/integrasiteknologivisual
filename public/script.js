@@ -548,3 +548,203 @@ async function loadArticles() {
 loadSiteConfig();
 loadArticles();
 initAnalytics();
+
+/* =========================================================
+   Banner Slideshow (Hero Carousel)
+   ========================================================= */
+function initBanner() {
+  const root = document.getElementById('hero');
+  const track = document.getElementById('bannerSlides');
+  const dotsBox = document.getElementById('bannerDots');
+  const prevBtn = document.getElementById('bannerPrev');
+  const nextBtn = document.getElementById('bannerNext');
+  if (!root || !track) return;
+
+  const slides = Array.from(track.querySelectorAll('.banner__slide'));
+  if (!slides.length) return;
+
+  const DURATION = 6000;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.style.setProperty('--banner-duration', DURATION + 'ms');
+
+  let index = 0;
+  let timer = null;
+  let paused = false;
+
+  const dots = slides.map((slide, i) => {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'banner__dot';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', slide.getAttribute('aria-label') || 'Sorotan ' + (i + 1));
+    dot.addEventListener('click', () => {
+      goTo(i);
+      restart();
+    });
+    if (dotsBox) dotsBox.appendChild(dot);
+    return dot;
+  });
+
+  function goTo(i) {
+    index = (i + slides.length) % slides.length;
+    track.style.transform = 'translateX(-' + index * 100 + '%)';
+
+    slides.forEach((slide, k) => {
+      const active = k === index;
+      slide.classList.toggle('is-active', active);
+      slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+      if ('inert' in HTMLElement.prototype) slide.inert = !active;
+    });
+
+    dots.forEach((dot, k) => {
+      dot.classList.remove('is-active');
+      dot.setAttribute('aria-selected', k === index ? 'true' : 'false');
+    });
+
+    const activeDot = dots[index];
+    if (activeDot) {
+      void activeDot.offsetWidth; /* restart progress animation */
+      activeDot.classList.add('is-active');
+    }
+  }
+
+  function stop() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function start() {
+    stop();
+    if (reduced) return;
+    timer = setInterval(() => {
+      if (!paused) goTo(index + 1);
+    }, DURATION);
+  }
+
+  function restart() {
+    start();
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      goTo(index - 1);
+      restart();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      goTo(index + 1);
+      restart();
+    });
+  }
+
+  root.addEventListener('mouseenter', () => { paused = true; });
+  root.addEventListener('mouseleave', () => { paused = false; });
+  root.addEventListener('focusin', () => { paused = true; });
+  root.addEventListener('focusout', () => { paused = false; });
+
+  root.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      goTo(index - 1);
+      restart();
+    } else if (e.key === 'ArrowRight') {
+      goTo(index + 1);
+      restart();
+    }
+  });
+
+  let touchStartX = 0;
+  let touching = false;
+  root.addEventListener(
+    'touchstart',
+    (e) => {
+      touchStartX = e.touches[0].clientX;
+      touching = true;
+      paused = true;
+    },
+    { passive: true }
+  );
+  root.addEventListener(
+    'touchend',
+    (e) => {
+      if (!touching) return;
+      touching = false;
+      paused = false;
+      const delta = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) > 45) {
+        goTo(index + (delta < 0 ? 1 : -1));
+        restart();
+      }
+    },
+    { passive: true }
+  );
+
+  goTo(0);
+  start();
+}
+
+/* =========================================================
+   Klien & Mitra (dari database)
+   ========================================================= */
+const PARTNER_ICONS = {
+  hardware: 'display',
+  infrastructure: 'cloud',
+  fintech: 'credit-card',
+  software: 'code-square',
+  partnership: 'diagram-3',
+  delivery: 'tools',
+  operations: 'shield-check',
+  service: 'headset'
+};
+
+function partnerIcon(category) {
+  const key = String(category || '').toLowerCase().trim();
+  return PARTNER_ICONS[key] || 'diagram-3';
+}
+
+function renderClients(payload) {
+  if (!payload) return;
+  const clientsGrid = document.getElementById('clients-grid');
+  const partnersGrid = document.getElementById('partners-grid');
+  const clients = Array.isArray(payload.clients) ? payload.clients : [];
+  const partners = Array.isArray(payload.partners) ? payload.partners : [];
+
+  if (clientsGrid && clients.length) {
+    clientsGrid.innerHTML = '';
+    clients.forEach((c) => {
+      const card = el('div', 'logo-card reveal visible');
+      card.appendChild(el('span', 'logo-card__mark', c.initials || 'ITV'));
+      card.appendChild(el('span', 'logo-card__name', c.name || ''));
+      if (c.segment) card.appendChild(el('span', 'logo-card__meta', c.segment));
+      clientsGrid.appendChild(card);
+    });
+  }
+
+  if (partnersGrid && partners.length) {
+    partnersGrid.innerHTML = '';
+    partners.forEach((p) => {
+      const card = el('article', 'card partner-card reveal visible');
+      const icon = el('div', 'card__icon');
+      icon.appendChild(el('i', 'bi bi-' + partnerIcon(p.category)));
+      card.appendChild(icon);
+      card.appendChild(el('h3', '', p.name || ''));
+      if (p.description) card.appendChild(el('p', '', p.description));
+      if (p.category) card.appendChild(el('span', 'tag', p.category));
+      partnersGrid.appendChild(card);
+    });
+  }
+}
+
+async function loadClients() {
+  try {
+    const data = await api('/clients');
+    renderClients(data);
+  } catch {
+    /* biarkan markup statis sebagai fallback */
+  }
+}
+
+initBanner();
+loadClients();

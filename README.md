@@ -12,7 +12,13 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 ### Website publik (`/`)
 - **Halaman korporat** (HTML5/CSS3/vanilla JS, tanpa build step): hero, layanan, produk,
   sektor, insight, proses, garansi, dan form konsultasi.
-- **Konten dinamis dari MySQL**: kartu layanan, produk, sektor, dan artikel dirender dari
+- **Banner slideshow (hero carousel)**: 4 slide otomatis (rotasi 6 detik) dengan tombol
+  panah, indikator titik + progres animasi, swipe sentuh, navigasi keyboard, pause saat hover/fokus,
+  dan dukungan `prefers-reduced-motion`.
+- **Klien & Mitra**: section `#klien` menampilkan tile klien per industri (monogram + nama +
+  segmen) dan kartu mitra/ekosistem teknologi, keduanya dirender dari MySQL
+  (`GET /api/clients`) dengan fallback markup statis.
+- **Konten dinamis dari MySQL**: kartu layanan, produk, sektor, klien, mitra, dan artikel dirender dari
   database (dengan fallback markup statis bila API tidak terjangkau).
 - **SEO & branding otomatis dari CMS**: `<title>`, meta description/keywords, Open Graph,
   Twitter Card, canonical, JSON-LD Schema.org, `robots.txt`, dan `sitemap.xml` diambil dari
@@ -100,6 +106,8 @@ Database `itv_corporate` (charset `utf8mb4` / `utf8mb4_unicode_ci`, engine InnoD
 | `services` | 4 pilar solusi (icon, deskripsi, fitur JSON)          |
 | `products` | 6 produk enterprise (deskripsi, fitur JSON, sektor)   |
 | `sectors`  | 7 sektor penempatan layanan (deskripsi, tags)         |
+| `clients`  | 10 klien per industri (nama, segmen, monogram)        |
+| `partners` | 8 mitra/ekosistem teknologi (kategori, deskripsi)     |
 | `leads`    | Permintaan konsultasi dari form situs (status `new`)  |
 
 ### CMS
@@ -129,6 +137,7 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | GET    | `/api/services`         | Daftar layanan aktif                                |
 | GET    | `/api/products`         | Daftar produk aktif                                 |
 | GET    | `/api/sectors`          | Daftar sektor aktif                                 |
+| GET    | `/api/clients`          | Daftar klien aktif + mitra/ekosistem teknologi      |
 | GET    | `/api/stats`            | Jumlah layanan/produk/sektor/leads                 |
 | GET    | `/api/site-config`      | Branding + SEO aktif untuk website publik          |
 | GET    | `/api/articles`         | Artikel terbit (`?limit=`)                          |
