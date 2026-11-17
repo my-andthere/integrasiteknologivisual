@@ -320,3 +320,96 @@ p { margin: 0 0 1rem; }
 /* ---------- Reveal ---------- */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.visible { opacity: 1; transform: none; }
+
+/* =========================================================
+   Form Permintaan Konsultasi (tersimpan ke MySQL)
+   ========================================================= */
+.lead-form {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 40px;
+  box-shadow: 0 18px 44px rgba(11, 31, 58, .07);
+}
+.lead-form__head { margin-bottom: 26px; }
+.lead-form__head h3 { margin: 10px 0 8px; font-size: 26px; }
+.lead-form__head p { margin: 0; color: var(--muted); }
+
+.form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.field { display: block; margin-bottom: 18px; }
+.field > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 7px;
+}
+.field i { color: #e0533d; font-style: normal; }
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--navy);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-soft);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.field textarea { resize: vertical; min-height: 110px; }
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, .14);
+}
+.field input.invalid, .field select.invalid { border-color: #e0533d; background: #fff6f4; }
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.form__actions .btn { border: none; cursor: pointer; }
+.form__actions .btn:disabled { opacity: .65; cursor: progress; }
+.form__note { font-size: 13px; color: var(--muted); }
+.form__msg { margin-top: 16px; font-size: 14px; min-height: 20px; }
+.form__msg.ok { color: #17803d; font-weight: 600; }
+.form__msg.err { color: #c0392b; font-weight: 600; }
+
+.db-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+.db-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0392b;
+}
+.db-badge.online::before { background: #1aa251; box-shadow: 0 0 0 3px rgba(26, 162, 81, .18); }
+
+@media (max-width: 640px) {
+  .lead-form { padding: 26px 20px; }
+  .form__row { grid-template-columns: 1fr; gap: 0; }
+}

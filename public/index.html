@@ -151,7 +151,7 @@
       <p class="lead">Dari perangkat display di lapangan hingga platform enterprise di pusat data — satu mitra, satu pola arsitektur.</p>
     </div>
 
-    <div class="grid grid--4">
+    <div class="grid grid--4" id="services-grid">
       <article class="card reveal">
         <div class="card__icon">&#128250;</div>
         <h3>Smart Display &amp; Digital Signage</h3>
@@ -216,7 +216,7 @@
       <p class="lead">Setiap lini produk dapat dikonfigurasi, diintegrasikan, dan diskalakan mengikuti kompleksitas organisasi Anda.</p>
     </div>
 
-    <div class="grid grid--3">
+    <div class="grid grid--3" id="products-grid">
       <article class="card reveal">
         <h3>Enterprise Integrated Platform</h3>
         <p>Pusat kendali terpadu yang menyatukan modul operasional, analitik, dan monitoring dalam satu tampilan.</p>
@@ -295,7 +295,7 @@
       <p class="lead">Selain korporasi besar dan instansi publik, solusi sistem kami juga melayani skala UMKM / bisnis lokal hingga sektor spesifik.</p>
     </div>
 
-    <div class="grid grid--4">
+    <div class="grid grid--4" id="sectors-grid">
       <div class="segment reveal">
         <h3>Corporate &amp; Enterprise</h3>
         <p>Digitalisasi proses inti, integrasi multi-sistem, dan enterprise platform untuk organisasi berskala besar.</p>
@@ -318,7 +318,7 @@
       </div>
     </div>
 
-    <div class="grid grid--3" style="margin-top:24px">
+    <div class="grid grid--3" style="margin-top:24px" id="sectors-grid-2">
       <div class="segment reveal">
         <h3>Perbankan &amp; Keuangan</h3>
         <p>Integrasi payment gateway, core system, dan layanan digital dengan standar keamanan tinggi.</p>
@@ -479,6 +479,80 @@
         <a href="https://wa.me/6285117183332" class="btn btn--primary" target="_blank" rel="noopener">Chat WhatsApp</a>
         <a href="mailto:business@integrasiteknologivisual.com" class="btn btn--ghost">Kirim Email</a>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ FORM KONSULTASI (tersimpan ke MySQL) ============ -->
+  <div class="wrap" style="margin-top:56px">
+    <div class="lead-form reveal" id="lead-form-wrap">
+      <div class="lead-form__head">
+        <span class="eyebrow">Permintaan Konsultasi</span>
+        <h3>Kirim Detail Kebutuhan Anda</h3>
+        <p>Data Anda tersimpan aman di database kami dan akan ditindaklanjuti tim sales &amp; Engineer maksimal 1x24 jam.</p>
+      </div>
+
+      <form id="leadForm" class="form" novalidate>
+        <div class="form__row">
+          <label class="field">
+            <span>Nama Lengkap <i>*</i></span>
+            <input type="text" name="full_name" id="lfName" placeholder="Nama Anda" required maxlength="120" />
+          </label>
+          <label class="field">
+            <span>Perusahaan</span>
+            <input type="text" name="company" id="lfCompany" placeholder="Nama perusahaan / instansi" maxlength="160" />
+          </label>
+        </div>
+
+        <div class="form__row">
+          <label class="field">
+            <span>Email <i>*</i></span>
+            <input type="email" name="email" id="lfEmail" placeholder="nama@perusahaan.com" required maxlength="160" />
+          </label>
+          <label class="field">
+            <span>No. WhatsApp / Telepon <i>*</i></span>
+            <input type="tel" name="phone" id="lfPhone" placeholder="08xxxxxxxxxx" required maxlength="40" />
+          </label>
+        </div>
+
+        <div class="form__row">
+          <label class="field">
+            <span>Sektor</span>
+            <select name="sector" id="lfSector">
+              <option value="">Pilih sektor...</option>
+              <option>Corporate &amp; Enterprise</option>
+              <option>Mall &amp; Retail</option>
+              <option>Industry &amp; Manufacturing</option>
+              <option>Government</option>
+              <option>Perbankan &amp; Keuangan</option>
+              <option>Healthcare</option>
+              <option>Hotel, Properti &amp; Pendidikan</option>
+              <option>UMKM / Bisnis Lokal</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Layanan yang Dibutuhkan</span>
+            <select name="service" id="lfService">
+              <option value="">Pilih layanan...</option>
+              <option>Smart Display &amp; Digital Signage</option>
+              <option>Software Enterprise Kustom</option>
+              <option>System Integration &amp; AI Automation</option>
+              <option>Cloud Server &amp; Managed IT</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Ceritakan kebutuhan Anda</span>
+          <textarea name="message" id="lfMessage" rows="4" placeholder="Contoh: kami butuh 5 unit videotron untuk display lobby kantor..." maxlength="4000"></textarea>
+        </label>
+
+        <div class="form__actions">
+          <button type="submit" class="btn btn--primary" id="leadSubmit">Kirim Permintaan Konsultasi</button>
+          <span class="form__note">Gratis &middot; Tanpa obligation &middot; Respons 1x24 jam</span>
+        </div>
+
+        <div class="form__msg" id="leadMsg" role="status" aria-live="polite"></div>
+      </form>
     </div>
   </div>
 </section>

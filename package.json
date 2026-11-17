@@ -1,0 +1,17 @@
+{
+  "name": "integrasiteknologivisual",
+  "version": "1.0.0",
+  "description": "Landing page & API PT. Integration Teknologi Visual",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "db:init": "node server/init-db.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
+  }
+}
