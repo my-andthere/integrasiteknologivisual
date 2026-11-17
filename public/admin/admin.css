@@ -16,6 +16,10 @@
 
 * { box-sizing: border-box; }
 
+/* The `hidden` attribute must win over any layout rule (e.g. .login-wrap { display: grid }),
+   otherwise hidden screens stay visible and overlap the app. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
