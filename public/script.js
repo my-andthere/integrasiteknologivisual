@@ -740,8 +740,6 @@ function renderClients(payload) {
       } else {
         card.appendChild(el('span', 'logo-card__mark', c.initials || 'ITV'));
       }
-      card.appendChild(el('span', 'logo-card__name', c.name || ''));
-      if (c.segment) card.appendChild(el('span', 'logo-card__meta', c.segment));
       clientsGrid.appendChild(card);
     });
   }
@@ -762,9 +760,6 @@ function renderClients(payload) {
         icon.appendChild(el('i', 'bi bi-' + partnerIcon(p.category)));
         card.appendChild(icon);
       }
-      card.appendChild(el('h3', '', p.name || ''));
-      if (p.description) card.appendChild(el('p', '', p.description));
-      if (p.category) card.appendChild(el('span', 'tag', p.category));
       partnersGrid.appendChild(card);
     });
   }

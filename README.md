@@ -19,10 +19,10 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
   (`image_url`) dengan teks alternatif (`image_alt`) untuk aksesibilitas & SEO. Judul slide tetap
   ada sebagai heading tersembunyi (`visually-hidden`) sehingga struktur SEO/a11y tidak hilang.
   Opsional `show_caption=1` menampilkan overlay teks (eyebrow, judul, deskripsi, CTA) di atas gambar.
-- **Klien** (section `#klien`): tile logo klien per industri (gambar logo + nama + segmen),
-  dirender dari MySQL (`GET /api/clients`) dengan fallback markup statis.
-- **Mitra** (section `#mitra`, terpisah dari Klien): kartu logo mitra/ekosistem teknologi
-  (gambar logo + nama + deskripsi + kategori) pada bagian berlatar lembut sendiri.
+- **Klien** (section `#klien`): grid logo klien per industri — **hanya gambar logo** (tanpa teks
+  keterangan), dirender dari MySQL (`GET /api/clients`) dengan fallback markup statis.
+- **Mitra** (section `#mitra`, terpisah dari Klien): grid logo mitra/ekosistem teknologi — **hanya
+  gambar logo** — pada bagian berlatar lembut sendiri.
 - **Konten dinamis dari MySQL**: kartu layanan, produk, sektor, klien, mitra, dan artikel dirender dari
   database (dengan fallback markup statis bila API tidak terjangkau).
 - **SEO & branding otomatis dari CMS**: `<title>`, meta description/keywords, Open Graph,
