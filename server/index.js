@@ -11,6 +11,8 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
 
 const app = express();
+// Upload gambar banner butuh payload lebih besar (base64) — parser khusus didahulukan.
+app.use('/api/admin/banners/upload', express.json({ limit: '8mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -86,7 +88,8 @@ app.get('/api/banners', async (_req, res, next) => {
     const rows = await query(
       `SELECT id, slug, title, title_highlight, eyebrow, description,
               cta_label, cta_url, cta2_label, cta2_url, accent,
-              visual_title, visual_label, visual_caption, chips, badges, sort_order
+                visual_title, visual_label, visual_caption, chips, badges, sort_order,
+                image_url, image_alt, show_caption
        FROM banners WHERE is_active = 1 ORDER BY sort_order, id`
     );
     res.json({ slides: rows.map(mapBanner) });

@@ -795,8 +795,97 @@ function safeAccent(value) {
   return '';
 }
 
+function buildBannerImageSlide(slide, index, isFirst) {
+  const article = document.createElement('article');
+  article.className = 'banner__slide banner__slide--image' + (isFirst ? ' is-active' : '');
+  article.setAttribute('data-banner-slide', String(index + 1));
+  article.setAttribute('role', 'group');
+  article.setAttribute('aria-roledescription', 'slide');
+  article.setAttribute('aria-label', slide.image_alt || slide.title || 'Sorotan ' + (index + 1));
+
+  const img = document.createElement('img');
+  img.className = 'banner__image';
+  img.src = slide.image_url;
+  img.alt = slide.image_alt || slide.title || '';
+  img.loading = index === 0 ? 'eager' : 'lazy';
+  img.decoding = 'async';
+  article.appendChild(img);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'banner__overlay';
+  article.appendChild(overlay);
+
+  const showCaption = Number(slide.show_caption) === 1;
+  if (!showCaption) {
+    // Slide gambar murni: judul tetap ada untuk SEO/aksesibilitas.
+    const sr = document.createElement(isFirst ? 'h1' : 'h2');
+    sr.className = 'visually-hidden';
+    sr.textContent = [slide.title, slide.title_highlight].filter(Boolean).join(' ');
+    article.appendChild(sr);
+  }
+
+  if (showCaption && (slide.title || slide.description || slide.cta_label)) {
+    const caption = document.createElement('div');
+    caption.className = 'wrap banner__caption';
+
+    if (slide.eyebrow) {
+      const eyebrow = document.createElement('span');
+      eyebrow.className = 'eyebrow';
+      eyebrow.textContent = slide.eyebrow;
+      caption.appendChild(eyebrow);
+    }
+
+    const heading = document.createElement(isFirst ? 'h1' : 'h2');
+    heading.className = 'banner__title';
+    heading.appendChild(document.createTextNode(slide.title || ''));
+    if (slide.title_highlight) {
+      const hl = document.createElement('span');
+      hl.textContent = slide.title_highlight;
+      heading.appendChild(document.createTextNode(' '));
+      heading.appendChild(hl);
+    }
+    caption.appendChild(heading);
+
+    if (slide.description) {
+      const lead = document.createElement('p');
+      lead.className = 'hero__lead';
+      lead.innerHTML = sanitizeRichHtml(slide.description);
+      caption.appendChild(lead);
+    }
+
+    if (slide.cta_label || slide.cta2_label) {
+      const actions = document.createElement('div');
+      actions.className = 'hero__actions';
+      if (slide.cta_label) {
+        const a = document.createElement('a');
+        a.href = slide.cta_url || '#kontak';
+        a.className = 'btn btn--primary';
+        a.setAttribute('data-track', 'cta_hero_konsultasi');
+        a.textContent = slide.cta_label;
+        actions.appendChild(a);
+      }
+      if (slide.cta2_label) {
+        const a = document.createElement('a');
+        a.href = slide.cta2_url || '#layanan';
+        a.className = 'btn btn--ghost';
+        a.setAttribute('data-track', 'cta_hero_layanan');
+        a.textContent = slide.cta2_label;
+        actions.appendChild(a);
+      }
+      caption.appendChild(actions);
+    }
+
+    article.appendChild(caption);
+  }
+
+  return article;
+}
+
 function buildBannerSlide(slide, index) {
   const isFirst = index === 0;
+  const imageUrl = String(slide.image_url || '').trim();
+  if (imageUrl) return buildBannerImageSlide(slide, index, isFirst);
+
   const article = document.createElement('article');
   article.className = 'banner__slide' + (isFirst ? ' is-active' : '');
   article.setAttribute('data-banner-slide', String(index + 1));

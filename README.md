@@ -15,6 +15,10 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 - **Banner slideshow (hero carousel)**: 4 slide otomatis (rotasi 6 detik) dengan tombol
   panah, indikator titik + progres animasi, swipe sentuh, navigasi keyboard, pause saat hover/fokus,
   dan dukungan `prefers-reduced-motion`.
+- **Slide banner gambar penuh (image-only)**: tiap slide dapat memakai satu gambar full-bleed
+  (`image_url`) dengan teks alternatif (`image_alt`) untuk aksesibilitas & SEO. Judul slide tetap
+  ada sebagai heading tersembunyi (`visually-hidden`) sehingga struktur SEO/a11y tidak hilang.
+  Opsional `show_caption=1` menampilkan overlay teks (eyebrow, judul, deskripsi, CTA) di atas gambar.
 - **Klien & Mitra**: section `#klien` menampilkan tile klien per industri (monogram + nama +
   segmen) dan kartu mitra/ekosistem teknologi, keduanya dirender dari MySQL
   (`GET /api/clients`) dengan fallback markup statis.
@@ -47,6 +51,11 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 - **Manajemen Banner Slideshow**: CRUD penuh untuk slide hero carousel (judul + highlight, eyebrow,
   deskripsi ber-HTML, dua CTA, panel visual, warna aksen, chips, badges, urutan, status aktif) —
   perubahan langsung tampil pada hero landing page. Slug dibuat otomatis dan dijamin unik.
+- **Mode gambar pada banner**: setiap slide dapat diatur menjadi **murni gambar** (tanpa teks
+  di atas gambar) atau gambar + caption teks. Gambar bisa diisi lewat **URL** (`image_url`) atau
+  diunggah langsung dari CMS (tombol *Upload Gambar* → `POST /api/admin/banners/upload`, maks 5 MB,
+  format png/jpg/webp/gif/svg) dan tersimpan di `public/uploads/banners/`. Pratinjau gambar
+  langsung tampil di form.
 
 ---
 
@@ -114,7 +123,7 @@ Database `itv_corporate` (charset `utf8mb4` / `utf8mb4_unicode_ci`, engine InnoD
 | `sectors`  | 7 sektor penempatan layanan (deskripsi, tags)         |
 | `clients`  | 10 klien per industri (nama, segmen, monogram)        |
 | `partners` | 8 mitra/ekosistem teknologi (kategori, deskripsi)     |
-| `banners`  | Slide hero carousel (judul, CTA, chips, badges, urutan) |
+| `banners`  | Slide hero carousel (judul, CTA, chips, badges, urutan, `image_url`, `image_alt`, `show_caption`) |
 | `leads`    | Permintaan konsultasi dari form situs (status `new`)  |
 
 ### CMS
@@ -184,6 +193,7 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | POST   | `/api/admin/banners`           | Tambah slide banner                        |
 | PUT    | `/api/admin/banners/:id`       | Ubah slide banner                          |
 | DELETE | `/api/admin/banners/:id`       | Hapus slide banner                         |
+| POST   | `/api/admin/banners/upload`    | Unggah gambar banner (base64 data URL)    |
 | GET    | `/api/admin/leads`             | Daftar prospek                             |
 | PUT    | `/api/admin/leads/:id`         | Ubah status prospek                        |
 

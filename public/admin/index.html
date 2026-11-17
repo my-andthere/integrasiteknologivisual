@@ -442,6 +442,20 @@
           </label>
           <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
           <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+          <label class="col-2">URL Gambar Slide
+            <input type="text" name="image_url" maxlength="500" placeholder="/img/banners/enterprise-platform.svg" />
+          </label>
+          <label class="col-2">Upload Gambar (png/jpg/webp/gif/svg, maks 5MB)
+            <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+          </label>
+          <label class="col-2">Teks Alternatif Gambar <input type="text" name="image_alt" maxlength="180" placeholder="Deskripsi singkat gambar untuk aksesibilitas &amp; SEO" /></label>
+          <label class="col-2">Tampilkan Teks di Atas Gambar
+            <select name="show_caption"><option value="0">Sembunyikan (murni gambar)</option><option value="1">Tampilkan</option></select>
+          </label>
+          <div class="col-2" id="bannerPreview" hidden>
+            <span class="muted">Pratinjau gambar:</span><br />
+            <img id="bannerPreviewImg" alt="Pratinjau gambar banner" style="max-width:320px;border-radius:10px;border:1px solid var(--line);margin-top:8px" />
+          </div>
           <button type="submit" class="btn btn--primary">Simpan</button>
           <button type="button" class="btn btn--ghost" id="resetBanner">Reset</button>
         </form>
@@ -451,7 +465,7 @@
         <h3>Daftar Slide</h3>
         <div class="table-wrap">
           <table class="table" id="bannerTable">
-            <thead><tr><th>Judul</th><th>Slug</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Gambar</th><th>Judul</th><th>Slug</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

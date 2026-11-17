@@ -517,6 +517,53 @@ p { margin: 0 0 1rem; }
 .banner__slide .hero__actions { margin-top: 26px; }
 .banner__slide .hero__badges { margin-top: 36px; }
 
+/* --- Slide gambar (image-only) --- */
+.banner__slide--image {
+  padding: 0;
+  align-items: stretch;
+  min-height: clamp(420px, 62vh, 640px);
+  background: var(--navy);
+}
+.banner__slide--image::before { display: none; }
+.banner__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.banner__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 16, 32, .35) 0%, rgba(6, 16, 32, .08) 38%, rgba(6, 16, 32, .55) 100%);
+  pointer-events: none;
+}
+.banner__caption {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-height: clamp(420px, 62vh, 640px);
+  padding: 96px 0 118px;
+  text-align: left;
+}
+.banner__caption .banner__title { text-shadow: 0 2px 22px rgba(0, 0, 0, .55); }
+.banner__caption .hero__lead { text-shadow: 0 1px 14px rgba(0, 0, 0, .5); }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .banner__nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   z-index: 6;

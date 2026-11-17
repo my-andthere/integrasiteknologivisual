@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Enterprise Integrated Platform">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f3a"/>
+      <stop offset="0.55" stop-color="#12305a"/>
+      <stop offset="1" stop-color="#0d4c8b"/>
+    </linearGradient>
+    <radialGradient id="g2" cx="0.78" cy="0.24" r="0.6">
+      <stop offset="0" stop-color="#00b8d9" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#00b8d9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1f6feb" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#1f6feb" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g1)"/>
+  <rect width="1600" height="900" fill="url(#g2)"/>
+  <g opacity="0.35" stroke="#7fc4ff" stroke-width="1">
+    <path d="M0 720 L1600 470" stroke="url(#g3)" fill="none"/>
+    <path d="M0 800 L1600 560" fill="none" opacity="0.5"/>
+    <path d="M0 880 L1600 650" fill="none" opacity="0.3"/>
+  </g>
+  <g fill="#ffffff" fill-opacity="0.06" stroke="#9fd4ff" stroke-opacity="0.35">
+    <rect x="980" y="200" width="420" height="250" rx="18"/>
+    <rect x="1030" y="250" width="320" height="140" rx="10"/>
+  </g>
+  <g fill="#00b8d9" fill-opacity="0.85">
+    <rect x="1060" y="290" width="120" height="12" rx="6"/>
+    <rect x="1060" y="320" width="200" height="10" rx="5" opacity="0.7"/>
+    <rect x="1060" y="348" width="160" height="10" rx="5" opacity="0.5"/>
+  </g>
+  <g fill="#ffffff" fill-opacity="0.08">
+    <circle cx="300" cy="240" r="90"/>
+    <circle cx="420" cy="330" r="48"/>
+    <circle cx="220" cy="380" r="30"/>
+  </g>
+</svg>

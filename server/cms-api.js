@@ -6,10 +6,17 @@
  *   /api/cms/*    -> publik (konten yang dirender di website)
  */
 import express from 'express';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { query, parseJson } from './db.js';
 import { login, logout, requireAuth, resolveSession, visitorFingerprint } from './auth.js';
 
 const router = express.Router();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads', 'banners');
+const IMG_EXT = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg' };
 
 const slugify = (text, fallback = 'artikel') =>
   String(text || '')
@@ -481,7 +488,8 @@ router.get('/admin/banners', async (_req, res, next) => {
     const banners = await query(
       `SELECT id, slug, title, title_highlight, eyebrow, description,
               cta_label, cta_url, cta2_label, cta2_url, accent,
-              visual_title, visual_label, visual_caption, chips, badges, sort_order, is_active
+              visual_title, visual_label, visual_caption, chips, badges, sort_order, is_active,
+              image_url, image_alt, show_caption
        FROM banners ORDER BY sort_order, id`
     );
     res.json({
@@ -517,13 +525,17 @@ async function saveBanner(req, res, next, bannerId = null) {
     const visualCaption = b.visual_caption ? String(b.visual_caption).trim().slice(0, 180) : null;
     const chips = parseChips(b.chips).join(',').slice(0, 500) || null;
     const badges = JSON.stringify(parseBadges(b.badges)).slice(0, 4000);
+    const imageUrl = b.image_url ? String(b.image_url).trim().slice(0, 500) : null;
+    const imageAlt = b.image_alt ? String(b.image_alt).trim().slice(0, 180) : null;
+    const showCaption = b.show_caption === false || b.show_caption === 0 || b.show_caption === '0' ? 0 : 1;
     const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
     const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
 
     const values = [
       slug, title.slice(0, 180), titleHighlight, eyebrow, description,
       ctaLabel, ctaUrl, cta2Label, cta2Url, accent,
-      visualTitle, visualLabel, visualCaption, chips, badges, sortOrder, isActive
+      visualTitle, visualLabel, visualCaption, chips, badges, sortOrder, isActive,
+      imageUrl, imageAlt, showCaption
     ];
 
     if (bannerId) {
@@ -531,7 +543,7 @@ async function saveBanner(req, res, next, bannerId = null) {
         `UPDATE banners SET slug=?, title=?, title_highlight=?, eyebrow=?, description=?,
                 cta_label=?, cta_url=?, cta2_label=?, cta2_url=?, accent=?,
                 visual_title=?, visual_label=?, visual_caption=?, chips=?, badges=?,
-                sort_order=?, is_active=? WHERE id=?`,
+                sort_order=?, is_active=?, image_url=?, image_alt=?, show_caption=? WHERE id=?`,
         [...values, bannerId]
       );
       return res.json({ ok: true, id: bannerId, message: 'Slide banner diperbarui' });
@@ -541,13 +553,47 @@ async function saveBanner(req, res, next, bannerId = null) {
       `INSERT INTO banners
         (slug, title, title_highlight, eyebrow, description, cta_label, cta_url,
          cta2_label, cta2_url, accent, visual_title, visual_label, visual_caption,
-         chips, badges, sort_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         chips, badges, sort_order, is_active, image_url, image_alt, show_caption)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       values
     );
     res.json({ ok: true, id: result.insertId, message: 'Slide banner dibuat' });
   } catch (e) { next(e); }
 }
+
+router.post('/admin/banners/upload', async (req, res, next) => {
+  try {
+    const { filename, dataUrl } = req.body || {};
+    if (!dataUrl || typeof dataUrl !== 'string') {
+      return res.status(422).json({ ok: false, error: 'data gambar wajib diisi' });
+    }
+    const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+    if (!m) return res.status(422).json({ ok: false, error: 'format gambar tidak valid' });
+    const mime = m[1].toLowerCase();
+    const ext = IMG_EXT[mime];
+    if (!ext) return res.status(422).json({ ok: false, error: 'tipe gambar tidak didukung (png/jpg/webp/gif/svg)' });
+
+    const buffer = Buffer.from(m[2], 'base64');
+    if (!buffer.length) return res.status(422).json({ ok: false, error: 'gambar kosong' });
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(413).json({ ok: false, error: 'ukuran gambar maksimal 5MB' });
+    }
+
+    let base = String(filename || 'banner')
+      .toLowerCase()
+      .replace(/\.[a-z0-9]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'banner';
+
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    const stamp = Date.now().toString(36);
+    const fileName = `${base}-${stamp}${ext}`;
+    await fs.writeFile(path.join(UPLOAD_DIR, fileName), buffer);
+
+    res.json({ ok: true, url: `/uploads/banners/${fileName}`, message: 'Gambar banner diunggah' });
+  } catch (e) { next(e); }
+});
 
 router.post('/admin/banners', (req, res, next) => saveBanner(req, res, next, null));
 router.put('/admin/banners/:id', (req, res, next) => saveBanner(req, res, next, Number(req.params.id)));

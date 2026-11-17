@@ -168,38 +168,46 @@ CREATE TABLE IF NOT EXISTS banners (
   visual_caption  VARCHAR(180) NULL,
   chips           VARCHAR(500) NULL,
   badges          TEXT         NULL,
+  image_url       VARCHAR(500) NULL,
+  image_alt       VARCHAR(180) NULL,
+  show_caption    TINYINT(1)   NOT NULL DEFAULT 0,
   sort_order      INT          NOT NULL DEFAULT 0,
   is_active       TINYINT(1)   NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Migrasi: slide gambar saja (aman dijalankan berkali-kali)
+ALTER TABLE banners ADD COLUMN IF NOT EXISTS image_url VARCHAR(500) NULL;
+ALTER TABLE banners ADD COLUMN IF NOT EXISTS image_alt VARCHAR(180) NULL;
+ALTER TABLE banners ADD COLUMN IF NOT EXISTS show_caption TINYINT(1) NOT NULL DEFAULT 0;
+
 INSERT INTO banners
- (slug, title, title_highlight, eyebrow, description, cta_label, cta_url, cta2_label, cta2_url, accent, visual_title, visual_label, visual_caption, chips, badges, sort_order)
+ (slug, title, title_highlight, eyebrow, description, cta_label, cta_url, cta2_label, cta2_url, accent, visual_title, visual_label, visual_caption, chips, badges, sort_order, image_url, image_alt, show_caption)
 VALUES
 ('enterprise-platform', 'Solusi Teknologi Enterprise yang', 'Stabil, Aman & Scalable', 'Mitra Transformasi Digital Enterprise',
  'Kami pendamping korporasi, manufaktur, retail, dan instansi pemerintah dalam membangun <strong>Enterprise Integrated Platform</strong> — mulai dari <strong>Digital Signage & Smart Display</strong>, pengembangan <strong>software kustom</strong>, <strong>System Integration</strong>, <strong>AI Automation</strong>, hingga <strong>Cloud & Managed IT Services</strong>, guna mengoptimalkan operasional bisnis secara <strong>real-time</strong>.',
  'Jadwalkan Konsultasi Gratis', '#kontak', 'Lihat Solusi Kami', '#layanan', NULL,
  'Digital Signage & Smart Display', 'Centralized CMS', 'Multi-lokasi · Update Konten Seketika',
  'Video Wall,Interactive Kiosk,Whiteboard,Videotron Indoor,Videotron Outdoor,IoT Sensor',
- JSON_ARRAY(JSON_OBJECT('v','6 Bulan','l','Garansi Software'),JSON_OBJECT('v','1 Tahun','l','Garansi Hardware'),JSON_OBJECT('v','Real-Time','l','Monitoring & Integrasi'),JSON_OBJECT('v','Modular','l','Skala Bertahap')), 1),
+ JSON_ARRAY(JSON_OBJECT('v','6 Bulan','l','Garansi Software'),JSON_OBJECT('v','1 Tahun','l','Garansi Hardware'),JSON_OBJECT('v','Real-Time','l','Monitoring & Integrasi'),JSON_OBJECT('v','Modular','l','Skala Bertahap')), 1, '/img/banners/enterprise-platform.svg', 'Solusi Enterprise Platform Terintegrasi', 0),
 
 ('software-kustom', 'Aplikasi yang Mengikuti', 'Alur Kerja Anda', 'Software Enterprise Kustom',
  'Kami membangun <strong>web application, mobile app, dan API service</strong> yang mengikuti proses bisnis nyata — bukan template generik. Modul <strong>ERP, CRM, HRIS</strong>, dan <strong>Business Intelligence</strong> diintegrasikan dalam satu fondasi data dengan kontrol akses berbasis peran.',
  'Diskusikan Kebutuhan Anda', '#kontak', 'Lihat Produk', '#produk', 'rgba(31,111,235,.28)',
  'Enterprise Integrated Platform', 'Modul Terintegrasi', 'Single Sign-On · Master Data Terpusat',
  'Web Application,Mobile App,REST API,Single Sign-On,Dashboard BI',
- JSON_ARRAY(JSON_OBJECT('v','Web + Mobile','l','Android & iOS'),JSON_OBJECT('v','Modular','l','ERP · CRM · HRIS'),JSON_OBJECT('v','Terukur','l','Analitik Real-Time')), 2),
+ JSON_ARRAY(JSON_OBJECT('v','Web + Mobile','l','Android & iOS'),JSON_OBJECT('v','Modular','l','ERP · CRM · HRIS'),JSON_OBJECT('v','Terukur','l','Analitik Real-Time')), 2, '/img/banners/software-kustom.svg', 'Aplikasi Software Kustom Sesuai Alur Kerja', 0),
 
 ('integration-ai', 'Satu Alur Data', 'yang Konsisten', 'System Integration & AI Automation',
  'Menyatukan sistem yang tersebar — core legacy, payment gateway, sensor IoT, hingga dokumen legacy — lewat <strong>REST API & middleware integration</strong>. Ditambah <strong>AI chatbot</strong> dan otomasi proses internal berulang dengan pendekatan <em>human-in-the-loop</em>.',
  'Konsultasi Integrasi', '#kontak', 'Lihat Sektor Industri', '#sektor', 'rgba(0,184,217,.24)',
  'Integration & AI Engine', 'Data Flow Terpusat', 'Legacy · IoT · Payment · AI',
  'REST API,Middleware,AI Chatbot,Payment Gateway,Document Processing',
- JSON_ARRAY(JSON_OBJECT('v','Legacy','l','Migrasi Sistem Aman'),JSON_OBJECT('v','IoT','l','Device Connectivity'),JSON_OBJECT('v','AI','l','Chatbot & Otomasi')), 3),
+ JSON_ARRAY(JSON_OBJECT('v','Legacy','l','Migrasi Sistem Aman'),JSON_OBJECT('v','IoT','l','Device Connectivity'),JSON_OBJECT('v','AI','l','Chatbot & Otomasi')), 3, '/img/banners/integration-ai.svg', 'Integrasi Sistem dan AI Automation', 0),
 
 ('cloud-managed-it', 'Infrastruktur', 'yang Terkelola', 'Cloud Server & Managed IT',
  'Server, <strong>monitoring 24/7</strong>, <strong>backup & disaster recovery</strong>, domain, SSL, dan email enterprise ditangani tim kami — Anda fokus pada operasi bisnis inti tanpa terbebani oleh sistem.',
  'Audit Infrastruktur Anda', '#kontak', 'Lihat Garansi Layanan', '#garansi', 'rgba(96,165,250,.26)',
  'Managed Cloud Operations', 'System Health Monitor', 'Uptime · Traffic · Alerting',
  'Cloud Server,Virtualization,Backup & DR,Domain & SSL,Email Enterprise',
- JSON_ARRAY(JSON_OBJECT('v','24/7','l','Monitoring & Incident Response'),JSON_OBJECT('v','DR','l','Backup & Recovery'),JSON_OBJECT('v','Terukur','l','Uptime & Performansi')), 4)
-ON DUPLICATE KEY UPDATE title = VALUES(title), title_highlight = VALUES(title_highlight), eyebrow = VALUES(eyebrow), description = VALUES(description), cta_label = VALUES(cta_label), cta_url = VALUES(cta_url), cta2_label = VALUES(cta2_label), cta2_url = VALUES(cta2_url), accent = VALUES(accent), visual_title = VALUES(visual_title), visual_label = VALUES(visual_label), visual_caption = VALUES(visual_caption), chips = VALUES(chips), badges = VALUES(badges), sort_order = VALUES(sort_order), is_active = 1;
+ JSON_ARRAY(JSON_OBJECT('v','24/7','l','Monitoring & Incident Response'),JSON_OBJECT('v','DR','l','Backup & Recovery'),JSON_OBJECT('v','Terukur','l','Uptime & Performansi')), 4, '/img/banners/cloud-managed-it.svg', 'Infrastruktur Cloud dan Managed IT', 0)
+ON DUPLICATE KEY UPDATE title = VALUES(title), title_highlight = VALUES(title_highlight), eyebrow = VALUES(eyebrow), description = VALUES(description), cta_label = VALUES(cta_label), cta_url = VALUES(cta_url), cta2_label = VALUES(cta2_label), cta2_url = VALUES(cta2_url), accent = VALUES(accent), visual_title = VALUES(visual_title), visual_label = VALUES(visual_label), visual_caption = VALUES(visual_caption), chips = VALUES(chips), badges = VALUES(badges), sort_order = VALUES(sort_order), image_url = VALUES(image_url), image_alt = VALUES(image_alt), show_caption = VALUES(show_caption), is_active = 1;

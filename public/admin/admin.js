@@ -654,6 +654,7 @@
     const tb = $('#bannerTable tbody');
     tb.innerHTML = allBanners.length ? allBanners.map((b) => `
       <tr>
+        <td>${b.image_url ? `<img src="${escapeHtml(b.image_url)}" alt="" style="width:110px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--line)" />` : '<small class="muted">Tanpa gambar</small>'}</td>
         <td><strong>${escapeHtml(b.title)}</strong>${b.eyebrow ? `<br><small>${escapeHtml(b.eyebrow)}</small>` : ''}</td>
         <td><small>/${escapeHtml(b.slug)}</small></td>
         <td>${fmt(b.sort_order)}</td>
@@ -662,7 +663,7 @@
           <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${b.id}">Edit</button>
           <button class="btn btn--ghost btn--sm" data-act="del" data-id="${b.id}">Hapus</button>
         </td>
-      </tr>`).join('') : '<tr><td colspan="5" class="muted">Belum ada slide banner.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada slide banner.</td></tr>';
 
     $$('#bannerTable [data-act]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -689,6 +690,11 @@
           form.badges.value = badges.map((x) => `${x.v || ''}|${x.l || ''}`).join('\n');
           form.sort_order.value = b.sort_order;
           form.is_active.value = String(b.is_active);
+          form.image_url.value = b.image_url || '';
+          form.image_alt.value = b.image_alt || '';
+          form.show_caption.value = String(Number(b.show_caption) === 1 ? '1' : '0');
+          form.image_file.value = '';
+          updateBannerPreview(form.image_url.value);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           if (!confirm('Hapus slide banner ini?')) return;
@@ -720,14 +726,25 @@
       chips: form.chips.value,
       badges: form.badges.value,
       sort_order: num(form.sort_order.value),
-      is_active: form.is_active.value === '1'
+      is_active: form.is_active.value === '1',
+      image_url: form.image_url.value,
+      image_alt: form.image_alt.value,
+      show_caption: form.show_caption.value === '1'
     };
     try {
+      const file = form.image_file.files && form.image_file.files[0];
+      if (file) {
+        const dataUrl = await readFileAsDataUrl(file);
+        const up = await api('/admin/banners/upload', { method: 'POST', body: { filename: file.name, dataUrl } });
+        body.image_url = up.url;
+      }
       if (form.id.value) await api(`/admin/banners/${form.id.value}`, { method: 'PUT', body });
       else await api('/admin/banners', { method: 'POST', body });
       toast('Slide banner disimpan');
       form.reset();
       form.id.value = '';
+      form.show_caption.value = '0';
+      updateBannerPreview('');
       loadBanners();
     } catch (err) { toast(err.message); }
   });
@@ -736,6 +753,40 @@
     const form = $('#bannerForm');
     form.reset();
     form.id.value = '';
+    form.show_caption.value = '0';
+    updateBannerPreview('');
+  });
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('gagal membaca berkas gambar'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function updateBannerPreview(url) {
+    const wrap = $('#bannerPreview');
+    const img = $('#bannerPreviewImg');
+    if (!wrap || !img) return;
+    if (url) {
+      img.src = url;
+      wrap.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      wrap.hidden = true;
+    }
+  }
+
+  $('#bannerForm').image_url.addEventListener('input', (e) => updateBannerPreview(e.target.value.trim()));
+  $('#bannerForm').image_file.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    updateBannerPreview('');
+    const reader = new FileReader();
+    reader.onload = () => updateBannerPreview(String(reader.result || ''));
+    reader.readAsDataURL(file);
   });
 
   /* ---------------- analitik ---------------- */
