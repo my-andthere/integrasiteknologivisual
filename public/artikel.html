@@ -9,7 +9,9 @@
   <meta property="og:title" content="Artikel — PT. Integration Teknologi Visual" />
   <meta property="og:description" content="Artikel dan wawasan terbaru dari PT. Integration Teknologi Visual." />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:image" content="/img/og-default.svg" />
   <link rel="canonical" href="https://www.integrasiteknologivisual.com" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <script type="application/ld+json" id="schemaOrg">{}</script>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -57,6 +59,7 @@
 
 <script>
   const API = '/api';
+  let SEO = {};
 
   function esc(str) {
     return String(str == null ? '' : str)
@@ -90,8 +93,28 @@
     document.querySelectorAll('[data-brand="tagline"]').forEach((n) => (n.textContent = val('brand.tagline') || n.textContent));
   }
 
+  function setMeta(attr, key, content) {
+    if (!content) return;
+    let tag = document.head.querySelector(`meta[${attr}="${key}"]`);
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.setAttribute(attr, key);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+  }
+
+  function absoluteUrl(path) {
+    const p = String(path || '').trim();
+    if (!p) return '';
+    if (/^https?:\/\//i.test(p)) return p;
+    const base = String(SEO['seo.canonical_base'] || '').replace(/\/$/, '');
+    return base ? base + p : p;
+  }
+
   function applySeo(seo) {
     const val = (key) => String(seo[key] || '').trim();
+    SEO = seo || {};
     const title = val('seo.site_title');
     const desc = val('seo.meta_description');
     if (title) document.title = title;
@@ -141,6 +164,31 @@
       const og = document.head.querySelector('meta[property="og:title"]');
       if (og) og.setAttribute('content', a.title);
 
+      // SEO per-artikel: canonical, Open Graph, dan Twitter Card
+      const slugParam = encodeURIComponent(a.slug || slug);
+      const articleUrl = absoluteUrl(`/artikel.html?slug=${slugParam}`);
+      if (articleUrl) {
+        let link = document.head.querySelector('link[rel="canonical"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.setAttribute('rel', 'canonical');
+          document.head.appendChild(link);
+        }
+        link.setAttribute('href', articleUrl);
+        setMeta('property', 'og:url', articleUrl);
+      }
+      setMeta('property', 'og:type', 'article');
+      setMeta('name', 'twitter:title', a.title);
+      setMeta('name', 'twitter:description', a.excerpt || '');
+      const imageUrl = absoluteUrl(a.cover_image || SEO['seo.og_image'] || '');
+      if (imageUrl) {
+        setMeta('property', 'og:image', imageUrl);
+        setMeta('name', 'twitter:image', imageUrl);
+      }
+      if (a.published_at) {
+        setMeta('property', 'article:published_time', new Date(a.published_at).toISOString());
+      }
+
       const tags = Array.isArray(a.tags) ? a.tags : [];
       root.innerHTML = `
         <article>
@@ -157,7 +205,7 @@
               ${tags.map((t) => `<span class="article-tag">${esc(t)}</span>`).join('')}
             </div>
           </div>
-          <div class="article-page__cover"></div>
+          <div class="article-page__cover"${a.cover_image ? ` style="background-image:url('${esc(a.cover_image)}');background-size:cover;background-position:center;"` : ''}></div>
           <div class="article-page__body">${a.content || ''}</div>
         </article>`;
 
@@ -181,8 +229,11 @@
   }
 
   document.getElementById('year').textContent = new Date().getFullYear();
-  loadConfig();
-  loadArticle();
+  (async () => {
+    // konfigurasi SEO dimuat lebih dulu agar canonical & OG image ter-resolve
+    await loadConfig();
+    await loadArticle();
+  })();
 </script>
 </body>
 </html>

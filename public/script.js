@@ -486,7 +486,14 @@ function renderArticles(items) {
   }
   items.forEach((a) => {
     const card = el('article', 'article-card reveal visible');
-    const cover = el('div', 'article-card__cover', a.category || 'Insight');
+    const cover = el('div', 'article-card__cover');
+    if (a.cover_image) {
+      cover.style.backgroundImage = `url("${a.cover_image}")`;
+      cover.style.backgroundSize = 'cover';
+      cover.style.backgroundPosition = 'center';
+    } else {
+      cover.textContent = a.category || 'Insight';
+    }
     card.appendChild(cover);
 
     const body = el('div', 'article-card__body');
