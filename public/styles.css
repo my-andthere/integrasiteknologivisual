@@ -616,7 +616,7 @@ p { margin: 0 0 1rem; }
 /* =========================================================
    Klien & Mitra
    ========================================================= */
-.subsection-title { font-size: 1.22rem; margin: 0; color: var(--navy); }
+
 .grid--5 { grid-template-columns: repeat(5, 1fr); }
 .logo-grid { gap: 18px; }
 .logo-card {
