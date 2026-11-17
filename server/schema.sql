@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS services (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   slug          VARCHAR(80)  NOT NULL UNIQUE,
   title         VARCHAR(160) NOT NULL,
-  icon          VARCHAR(16)  NOT NULL DEFAULT '⚙',
+  icon          VARCHAR(16)  NOT NULL DEFAULT 'gear',
   short_desc    TEXT         NOT NULL,
   features      JSON         NULL,
   sort_order    INT          NOT NULL DEFAULT 0,
@@ -56,16 +56,16 @@ CREATE TABLE IF NOT EXISTS leads (
 -- Seed data
 -- =========================================================
 INSERT INTO services (slug, title, icon, short_desc, features, sort_order) VALUES
-('smart-display',      'Smart Display & Digital Signage', '📺',
+('smart-display',      'Smart Display & Digital Signage', 'display',
  'Jaringan display terpusat untuk komunikasi internal, promosi, dan informasi operasional real-time.',
  JSON_ARRAY('Digital Signage Standing & Wall-Mount','Interactive Kiosk','Interactive Whiteboard','Videotron Indoor / Outdoor','Video Wall & Centralized CMS'), 1),
-('software-enterprise','Software Enterprise Kustom', '💻',
+('software-enterprise','Software Enterprise Kustom', 'code-square',
  'Aplikasi yang dibangun khusus mengikuti alur kerja, bukan template generik.',
  JSON_ARRAY('Web Application & API Service','Mobile Android & iOS','ERP, CRM & HRIS','Business Intelligence & Dashboard','Modul real-time & notifikasi'), 2),
-('integration-ai',     'System Integration & AI Automation', '⇆',
+('integration-ai',     'System Integration & AI Automation', 'diagram-3',
  'Menyatukan sistem yang tersebar menjadi satu alur data yang konsisten.',
  JSON_ARRAY('REST API & Middleware Integration','IoT & Device Connectivity','Payment Gateway Integration','AI Chatbot & Automation','Legacy System Migration'), 3),
-('cloud-managed-it',   'Cloud Server & Managed IT', '☁',
+('cloud-managed-it',   'Cloud Server & Managed IT', 'cloud',
  'Infrastruktur terkelola tim kami, Anda fokus pada operasi bisnis inti.',
  JSON_ARRAY('Cloud Server & Virtualization','Backup & Disaster Recovery','Monitoring 24/7 & Incident Response','Domain, SSL & Email Enterprise','Managed Maintenance'), 4)
 ON DUPLICATE KEY UPDATE title = VALUES(title), icon = VALUES(icon), short_desc = VALUES(short_desc), features = VALUES(features), sort_order = VALUES(sort_order), is_active = 1;

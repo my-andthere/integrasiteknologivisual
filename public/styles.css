@@ -119,6 +119,7 @@ p { margin: 0 0 1rem; }
 .nav__links a { font-size: .93rem; font-weight: 500; color: var(--muted); transition: color .15s; }
 .nav__links a:hover { color: var(--blue); }
 .nav__toggle { display: none; background: none; border: 0; font-size: 1.6rem; cursor: pointer; color: var(--navy); }
+.nav__toggle i { line-height: 1; }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -201,6 +202,7 @@ p { margin: 0 0 1rem; }
   font-size: 1.4rem; margin-bottom: 18px;
   background: linear-gradient(135deg, rgba(31,111,235,.12), rgba(0,184,217,.12));
 }
+.card__icon i { line-height: 1; color: var(--navy); }
 .card__list { list-style: none; padding: 0; margin: 14px 0 0; }
 .card__list li { position: relative; padding-left: 22px; font-size: .92rem; color: var(--muted); margin-bottom: 8px; }
 .card__list li::before {
@@ -272,6 +274,7 @@ p { margin: 0 0 1rem; }
   display: grid; place-items: center; font-size: 1.1rem;
   background: rgba(31,111,235,.09);
 }
+.info-list .ic i { line-height: 1; color: var(--blue); }
 .info-list b { display: block; font-size: .82rem; color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .info-list a { color: var(--navy); font-weight: 600; }
 .info-list a:hover { color: var(--blue); }
@@ -444,7 +447,7 @@ p { margin: 0 0 1rem; }
 .article-card h3 { margin: 0; font-size: 1.08rem; }
 .article-card p { color: var(--muted); font-size: .92rem; margin: 0; flex: 1; }
 .article-card__meta { font-size: .78rem; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
-.article-card__link { font-size: .88rem; font-weight: 600; color: var(--blue); }
+.article-card__link { font-size: .88rem; font-weight: 600; color: var(--blue); display: inline-flex; align-items: center; gap: 6px; }
 .article-card__link:hover { color: var(--navy); }
 
 /* Halaman detail artikel */
@@ -467,4 +470,5 @@ p { margin: 0 0 1rem; }
   padding: 4px 12px; border-radius: 999px;
 }
 .back-link { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; font-weight: 600; color: var(--muted); margin-bottom: 18px; }
+.back-link i { line-height: 1; }
 .back-link:hover { color: var(--blue); }

@@ -176,7 +176,7 @@
         <td>${escapeHtml(a.category || '-')}</td>
         <td><span class="badge badge--${escapeHtml(a.status)}">${escapeHtml(a.status)}</span></td>
         <td>${fmt(a.views)}</td>
-        <td>${a.seo_title && a.seo_description && a.focus_keyword ? '✅ Lengkap' : '⚠️ Lengkapi'}</td>
+        <td>${a.seo_title && a.seo_description && a.focus_keyword ? '<i class="bi bi-check-circle-fill seo-ok"></i> Lengkap' : '<i class="bi bi-exclamation-triangle-fill seo-warn"></i> Lengkapi'}</td>
         <td>
           <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn btn--ghost btn--sm" data-act="toggle" data-id="${a.id}">${a.status === 'published' ? 'Unpublish' : 'Publish'}</button>
@@ -322,7 +322,7 @@
     el.style.background = `conic-gradient(var(--blue) ${score}%, var(--line) ${score}%)`;
     $('#seoChecks').innerHTML = (audit.checks || []).map((c) => `
       <div class="check">
-        <span class="mark ${c.ok ? 'ok' : 'no'}">${c.ok ? '✔' : '✖'}</span>
+        <span class="mark ${c.ok ? 'ok' : 'no'}"><i class="bi ${c.ok ? 'bi-check-lg' : 'bi-x-lg'}"></i></span>
         <span><b>${escapeHtml(c.name)}</b> <small>— ${escapeHtml(c.detail)}</small></span>
       </div>`).join('');
     $('#seoArticleTable tbody').innerHTML = (audit.articles || []).length

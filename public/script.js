@@ -74,6 +74,12 @@ function el(tag, className, text) {
   return node;
 }
 
+/* --- Ikon Bootstrap Icons (dari nama ikon di database) --- */
+function biIcon(name) {
+  const safe = String(name || 'gear').replace(/[^a-z0-9-]/gi, '') || 'gear';
+  return el('i', `bi bi-${safe}`);
+}
+
 /* --- Layanan (tabel services) --- */
 function renderServices(items) {
   const grid = document.getElementById('services-grid');
@@ -81,7 +87,8 @@ function renderServices(items) {
   grid.innerHTML = '';
   items.forEach((s) => {
     const card = el('article', 'card reveal visible');
-    const icon = el('div', 'card__icon', s.icon || '⚙');
+    const icon = el('div', 'card__icon');
+    icon.appendChild(biIcon(s.icon || 'gear'));
     card.appendChild(icon);
     card.appendChild(el('h3', '', s.title));
     card.appendChild(el('p', '', s.description || ''));
@@ -508,7 +515,9 @@ function renderArticles(items) {
 
     body.appendChild(el('p', '', a.excerpt || ''));
 
-    const link = el('a', 'article-card__link', 'Baca artikel →');
+    const link = el('a', 'article-card__link');
+    link.appendChild(document.createTextNode('Baca artikel '));
+    link.appendChild(el('i', 'bi bi-arrow-right'));
     link.href = `/artikel.html?slug=${encodeURIComponent(a.slug)}`;
     link.setAttribute('data-track', 'article_click');
     body.appendChild(link);
