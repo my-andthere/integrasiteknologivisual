@@ -15,7 +15,13 @@ import { login, logout, requireAuth, resolveSession, visitorFingerprint } from '
 const router = express.Router();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads', 'banners');
+const UPLOAD_ROOT = path.join(__dirname, '..', 'public', 'uploads');
+const UPLOAD_DIR = path.join(UPLOAD_ROOT, 'banners');
+const MEDIA_FOLDERS = {
+  banners: UPLOAD_DIR,
+  clients: path.join(UPLOAD_ROOT, 'clients'),
+  partners: path.join(UPLOAD_ROOT, 'partners')
+};
 const IMG_EXT = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg' };
 
 const slugify = (text, fallback = 'artikel') =>
@@ -351,7 +357,7 @@ function uniqueSlug(rows, candidate, ignoreId = 0, fallback = 'klien') {
 router.get('/admin/clients', async (_req, res, next) => {
   try {
     const clients = await query(
-      `SELECT id, slug, name, segment, initials, sort_order, is_active
+      `SELECT id, slug, name, segment, initials, image_url, image_alt, sort_order, is_active
        FROM clients ORDER BY sort_order, id`
     );
     res.json({ ok: true, clients, segments: CLIENT_SEGMENTS });
@@ -368,19 +374,22 @@ async function saveClient(req, res, next, clientId = null) {
     const slug = uniqueSlug(all, b.slug || name, clientId || 0, 'klien');
     const segment = String(b.segment || 'Lainnya').trim().slice(0, 80);
     const initials = String(b.initials || name.slice(0, 2)).trim().toUpperCase().slice(0, 8) || 'ITV';
+    const imageUrl = b.image_url ? String(b.image_url).trim().slice(0, 500) : null;
+    const imageAlt = b.image_alt ? String(b.image_alt).trim().slice(0, 180) : null;
     const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
     const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
 
     if (clientId) {
       await query(
-        `UPDATE clients SET slug=?, name=?, segment=?, initials=?, sort_order=?, is_active=? WHERE id=?`,
-        [slug, name.slice(0, 160), segment, initials, sortOrder, isActive, clientId]
+        `UPDATE clients SET slug=?, name=?, segment=?, initials=?, image_url=?, image_alt=?, sort_order=?, is_active=? WHERE id=?`,
+        [slug, name.slice(0, 160), segment, initials, imageUrl || null, imageAlt || null, sortOrder, isActive, clientId]
       );
       return res.json({ ok: true, id: clientId, message: 'Klien diperbarui' });
     }
     const result = await query(
-      `INSERT INTO clients (slug, name, segment, initials, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
-      [slug, name.slice(0, 160), segment, initials, sortOrder, isActive]
+      `INSERT INTO clients (slug, name, segment, initials, image_url, image_alt, sort_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [slug, name.slice(0, 160), segment, initials, imageUrl || null, imageAlt || null, sortOrder, isActive]
     );
     res.json({ ok: true, id: result.insertId, message: 'Klien dibuat' });
   } catch (e) { next(e); }
@@ -399,7 +408,7 @@ router.delete('/admin/clients/:id', async (req, res, next) => {
 router.get('/admin/partners', async (_req, res, next) => {
   try {
     const partners = await query(
-      `SELECT id, slug, name, category, description, initials, sort_order, is_active
+      `SELECT id, slug, name, category, description, initials, image_url, image_alt, sort_order, is_active
        FROM partners ORDER BY sort_order, id`
     );
     res.json({ ok: true, partners, categories: PARTNER_CATEGORIES });
@@ -417,20 +426,22 @@ async function savePartner(req, res, next, partnerId = null) {
     const category = String(b.category || 'Software').trim().slice(0, 80);
     const description = b.description ? String(b.description).trim().slice(0, 255) : null;
     const initials = String(b.initials || name.slice(0, 2)).trim().toUpperCase().slice(0, 8) || 'PR';
+    const imageUrl = b.image_url ? String(b.image_url).trim().slice(0, 500) : null;
+    const imageAlt = b.image_alt ? String(b.image_alt).trim().slice(0, 180) : null;
     const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
     const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
 
     if (partnerId) {
       await query(
-        `UPDATE partners SET slug=?, name=?, category=?, description=?, initials=?, sort_order=?, is_active=? WHERE id=?`,
-        [slug, name.slice(0, 160), category, description, initials, sortOrder, isActive, partnerId]
+        `UPDATE partners SET slug=?, name=?, category=?, description=?, initials=?, image_url=?, image_alt=?, sort_order=?, is_active=? WHERE id=?`,
+        [slug, name.slice(0, 160), category, description, initials, imageUrl || null, imageAlt || null, sortOrder, isActive, partnerId]
       );
       return res.json({ ok: true, id: partnerId, message: 'Mitra diperbarui' });
     }
     const result = await query(
-      `INSERT INTO partners (slug, name, category, description, initials, sort_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [slug, name.slice(0, 160), category, description, initials, sortOrder, isActive]
+      `INSERT INTO partners (slug, name, category, description, initials, image_url, image_alt, sort_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [slug, name.slice(0, 160), category, description, initials, imageUrl || null, imageAlt || null, sortOrder, isActive]
     );
     res.json({ ok: true, id: result.insertId, message: 'Mitra dibuat' });
   } catch (e) { next(e); }
@@ -592,6 +603,50 @@ router.post('/admin/banners/upload', async (req, res, next) => {
     await fs.writeFile(path.join(UPLOAD_DIR, fileName), buffer);
 
     res.json({ ok: true, url: `/uploads/banners/${fileName}`, message: 'Gambar banner diunggah' });
+  } catch (e) { next(e); }
+});
+
+/* Upload gambar generik (klien/mitra) — body: { filename, dataUrl, folder } */
+router.post('/admin/media/upload', async (req, res, next) => {
+  try {
+    const { filename, dataUrl } = req.body || {};
+    const folder = String((req.body || {}).folder || 'clients').toLowerCase();
+    if (!MEDIA_FOLDERS[folder]) {
+      return res.status(422).json({ ok: false, error: 'folder tidak valid (clients/partners)' });
+    }
+    if (!dataUrl || typeof dataUrl !== 'string') {
+      return res.status(422).json({ ok: false, error: 'data gambar wajib diisi' });
+    }
+    const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+    if (!m) return res.status(422).json({ ok: false, error: 'format gambar tidak valid' });
+    const mime = m[1].toLowerCase();
+    const ext = IMG_EXT[mime];
+    if (!ext) return res.status(422).json({ ok: false, error: 'tipe gambar tidak didukung (png/jpg/webp/gif/svg)' });
+
+    const buffer = Buffer.from(m[2], 'base64');
+    if (!buffer.length) return res.status(422).json({ ok: false, error: 'gambar kosong' });
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(413).json({ ok: false, error: 'ukuran gambar maksimal 5MB' });
+    }
+
+    let base = String(filename || folder)
+      .toLowerCase()
+      .replace(/\.[a-z0-9]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || folder;
+
+    const targetDir = MEDIA_FOLDERS[folder];
+    await fs.mkdir(targetDir, { recursive: true });
+    const stamp = Date.now().toString(36);
+    const fileName = `${base}-${stamp}${ext}`;
+    await fs.writeFile(path.join(targetDir, fileName), buffer);
+
+    res.json({
+      ok: true,
+      url: `/uploads/${folder}/${fileName}`,
+      message: `Gambar ${folder} diunggah`
+    });
   } catch (e) { next(e); }
 });
 

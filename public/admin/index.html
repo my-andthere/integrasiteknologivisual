@@ -353,7 +353,7 @@
     <section class="view" id="view-clients" hidden>
       <header class="view__head">
         <h1>Klien &amp; Mitra</h1>
-        <p class="muted">Kelola daftar klien per industri dan mitra/ekosistem teknologi yang tampil di section "Industri yang Kami Layani".</p>
+        <p class="muted">Kelola daftar klien per industri (section "Industri yang Kami Layani") dan mitra/ekosistem teknologi (section "Ekosistem Teknologi Kami") yang tampil di halaman utama.</p>
       </header>
 
       <div class="grid-2">
@@ -366,6 +366,15 @@
               <select name="segment" id="clientSegment"></select>
             </label>
             <label>Inisial <input type="text" name="initials" maxlength="8" placeholder="RN" /></label>
+            <label class="col-2">URL Logo <input type="text" name="image_url" maxlength="500" placeholder="/img/clients/retail-nasional.svg" /></label>
+            <label class="col-2">Upload Logo (png/jpg/webp/gif/svg, maks 5MB)
+              <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+            </label>
+            <label class="col-2">Teks Alternatif Logo <input type="text" name="image_alt" maxlength="180" placeholder="Logo Jaringan Retail Nasional" /></label>
+            <div class="col-2" id="clientPreview" hidden>
+              <span class="muted">Pratinjau logo:</span><br />
+              <img id="clientPreviewImg" alt="Pratinjau logo klien" style="max-width:220px;max-height:140px;object-fit:contain;border-radius:10px;border:1px solid var(--line);margin-top:8px;background:#f5f8fc" />
+            </div>
             <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
             <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
             <button type="submit" class="btn btn--primary">Simpan</button>
@@ -382,6 +391,15 @@
               <select name="category" id="partnerCategory"></select>
             </label>
             <label>Inisial <input type="text" name="initials" maxlength="8" placeholder="PR" /></label>
+            <label class="col-2">URL Logo <input type="text" name="image_url" maxlength="500" placeholder="/img/partners/oem-display.svg" /></label>
+            <label class="col-2">Upload Logo (png/jpg/webp/gif/svg, maks 5MB)
+              <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+            </label>
+            <label class="col-2">Teks Alternatif Logo <input type="text" name="image_alt" maxlength="180" placeholder="Logo OEM Display" /></label>
+            <div class="col-2" id="partnerPreview" hidden>
+              <span class="muted">Pratinjau logo:</span><br />
+              <img id="partnerPreviewImg" alt="Pratinjau logo mitra" style="max-width:220px;max-height:140px;object-fit:contain;border-radius:10px;border:1px solid var(--line);margin-top:8px;background:#f5f8fc" />
+            </div>
             <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
             <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
             <label>Deskripsi <input type="text" name="description" maxlength="255" placeholder="Ringkasan singkat peran mitra" /></label>
@@ -395,7 +413,7 @@
         <h3>Daftar Klien</h3>
         <div class="table-wrap">
           <table class="table" id="clientTable">
-            <thead><tr><th>Nama</th><th>Industri</th><th>Inisial</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Logo</th><th>Nama</th><th>Industri</th><th>Inisial</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -405,7 +423,7 @@
         <h3>Daftar Mitra</h3>
         <div class="table-wrap">
           <table class="table" id="partnerTable">
-            <thead><tr><th>Nama</th><th>Kategori</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Logo</th><th>Nama</th><th>Kategori</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

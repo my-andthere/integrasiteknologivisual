@@ -730,7 +730,16 @@ function renderClients(payload) {
     clientsGrid.innerHTML = '';
     clients.forEach((c) => {
       const card = el('div', 'logo-card reveal visible');
-      card.appendChild(el('span', 'logo-card__mark', c.initials || 'ITV'));
+      if (c.image_url) {
+        const img = document.createElement('img');
+        img.className = 'logo-card__logo';
+        img.src = c.image_url;
+        img.alt = c.image_alt || c.name || 'Logo klien';
+        img.loading = 'lazy';
+        card.appendChild(img);
+      } else {
+        card.appendChild(el('span', 'logo-card__mark', c.initials || 'ITV'));
+      }
       card.appendChild(el('span', 'logo-card__name', c.name || ''));
       if (c.segment) card.appendChild(el('span', 'logo-card__meta', c.segment));
       clientsGrid.appendChild(card);
@@ -741,9 +750,18 @@ function renderClients(payload) {
     partnersGrid.innerHTML = '';
     partners.forEach((p) => {
       const card = el('article', 'card partner-card reveal visible');
-      const icon = el('div', 'card__icon');
-      icon.appendChild(el('i', 'bi bi-' + partnerIcon(p.category)));
-      card.appendChild(icon);
+      if (p.image_url) {
+        const img = document.createElement('img');
+        img.className = 'partner-card__logo';
+        img.src = p.image_url;
+        img.alt = p.image_alt || p.name || 'Logo mitra';
+        img.loading = 'lazy';
+        card.appendChild(img);
+      } else {
+        const icon = el('div', 'card__icon');
+        icon.appendChild(el('i', 'bi bi-' + partnerIcon(p.category)));
+        card.appendChild(icon);
+      }
       card.appendChild(el('h3', '', p.name || ''));
       if (p.description) card.appendChild(el('p', '', p.description));
       if (p.category) card.appendChild(el('span', 'tag', p.category));

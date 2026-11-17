@@ -517,6 +517,7 @@
     const tb = $('#clientTable tbody');
     tb.innerHTML = allClients.length ? allClients.map((cl) => `
       <tr>
+        <td>${cl.image_url ? `<img src="${escapeHtml(cl.image_url)}" alt="${escapeHtml(cl.image_alt || cl.name)}" style="width:96px;height:60px;object-fit:contain;border-radius:8px;border:1px solid var(--line);background:#f5f8fc" />` : '<small class="muted">Tanpa logo</small>'}</td>
         <td><strong>${escapeHtml(cl.name)}</strong><br><small>/${escapeHtml(cl.slug)}</small></td>
         <td>${escapeHtml(cl.segment)}</td>
         <td>${escapeHtml(cl.initials)}</td>
@@ -526,7 +527,7 @@
           <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${cl.id}">Edit</button>
           <button class="btn btn--ghost btn--sm" data-act="del" data-id="${cl.id}">Hapus</button>
         </td>
-      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada klien.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="7" class="muted">Belum ada klien.</td></tr>';
 
     $$('#clientTable [data-act]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -539,6 +540,10 @@
           form.initials.value = cl.initials;
           form.sort_order.value = cl.sort_order;
           form.is_active.value = String(cl.is_active);
+          form.image_url.value = cl.image_url || '';
+          form.image_alt.value = cl.image_alt || '';
+          form.image_file.value = '';
+          updateLogoPreview('clientPreview', 'clientPreviewImg', form.image_url.value);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           if (!confirm('Hapus klien ini?')) return;
@@ -554,6 +559,7 @@
     const tb = $('#partnerTable tbody');
     tb.innerHTML = allPartners.length ? allPartners.map((pr) => `
       <tr>
+        <td>${pr.image_url ? `<img src="${escapeHtml(pr.image_url)}" alt="${escapeHtml(pr.image_alt || pr.name)}" style="width:96px;height:60px;object-fit:contain;border-radius:8px;border:1px solid var(--line);background:#f5f8fc" />` : '<small class="muted">Tanpa logo</small>'}</td>
         <td><strong>${escapeHtml(pr.name)}</strong><br><small>/${escapeHtml(pr.slug)}</small></td>
         <td>${escapeHtml(pr.category)}</td>
         <td>${escapeHtml(pr.description || '-')}</td>
@@ -563,7 +569,7 @@
           <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${pr.id}">Edit</button>
           <button class="btn btn--ghost btn--sm" data-act="del" data-id="${pr.id}">Hapus</button>
         </td>
-      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada mitra.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="7" class="muted">Belum ada mitra.</td></tr>';
 
     $$('#partnerTable [data-act]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -577,6 +583,10 @@
           form.initials.value = pr.initials;
           form.sort_order.value = pr.sort_order;
           form.is_active.value = String(pr.is_active);
+          form.image_url.value = pr.image_url || '';
+          form.image_alt.value = pr.image_alt || '';
+          form.image_file.value = '';
+          updateLogoPreview('partnerPreview', 'partnerPreviewImg', form.image_url.value);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           if (!confirm('Hapus mitra ini?')) return;
@@ -596,14 +606,23 @@
       segment: form.segment.value,
       initials: form.initials.value,
       sort_order: num(form.sort_order.value),
-      is_active: form.is_active.value === '1'
+      is_active: form.is_active.value === '1',
+      image_url: form.image_url.value.trim(),
+      image_alt: form.image_alt.value.trim()
     };
     try {
+      const file = form.image_file.files && form.image_file.files[0];
+      if (file) {
+        const dataUrl = await readFileAsDataUrl(file);
+        const up = await api('/admin/media/upload', { method: 'POST', body: { filename: file.name, dataUrl, folder: 'clients' } });
+        body.image_url = up.url;
+      }
       if (form.id.value) await api(`/admin/clients/${form.id.value}`, { method: 'PUT', body });
       else await api('/admin/clients', { method: 'POST', body });
       toast('Klien disimpan');
       form.reset();
       form.id.value = '';
+      updateLogoPreview('clientPreview', 'clientPreviewImg', '');
       loadClientsPartners();
     } catch (err) { toast(err.message); }
   });
@@ -617,14 +636,23 @@
       description: form.description.value,
       initials: form.initials.value,
       sort_order: num(form.sort_order.value),
-      is_active: form.is_active.value === '1'
+      is_active: form.is_active.value === '1',
+      image_url: form.image_url.value.trim(),
+      image_alt: form.image_alt.value.trim()
     };
     try {
+      const file = form.image_file.files && form.image_file.files[0];
+      if (file) {
+        const dataUrl = await readFileAsDataUrl(file);
+        const up = await api('/admin/media/upload', { method: 'POST', body: { filename: file.name, dataUrl, folder: 'partners' } });
+        body.image_url = up.url;
+      }
       if (form.id.value) await api(`/admin/partners/${form.id.value}`, { method: 'PUT', body });
       else await api('/admin/partners', { method: 'POST', body });
       toast('Mitra disimpan');
       form.reset();
       form.id.value = '';
+      updateLogoPreview('partnerPreview', 'partnerPreviewImg', '');
       loadClientsPartners();
     } catch (err) { toast(err.message); }
   });
@@ -633,13 +661,45 @@
     const form = $('#clientForm');
     form.reset();
     form.id.value = '';
+    updateLogoPreview('clientPreview', 'clientPreviewImg', '');
   });
 
   $('#resetPartner').addEventListener('click', () => {
     const form = $('#partnerForm');
     form.reset();
     form.id.value = '';
+    updateLogoPreview('partnerPreview', 'partnerPreviewImg', '');
   });
+
+  /* ---------------- logo klien & mitra ---------------- */
+  function updateLogoPreview(wrapId, imgId, url) {
+    const wrap = document.getElementById(wrapId);
+    const img = document.getElementById(imgId);
+    if (!wrap || !img) return;
+    if (url) {
+      img.src = url;
+      wrap.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      wrap.hidden = true;
+    }
+  }
+
+  function bindLogoForm(formSel, folder, wrapId, imgId) {
+    const form = $(formSel);
+    if (!form) return;
+    form.image_url.addEventListener('input', (e) => updateLogoPreview(wrapId, imgId, e.target.value.trim()));
+    form.image_file.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => updateLogoPreview(wrapId, imgId, String(reader.result || ''));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  bindLogoForm('#clientForm', 'clients', 'clientPreview', 'clientPreviewImg');
+  bindLogoForm('#partnerForm', 'partners', 'partnerPreview', 'partnerPreviewImg');
 
   /* ---------------- banner slideshow ---------------- */
   let allBanners = [];

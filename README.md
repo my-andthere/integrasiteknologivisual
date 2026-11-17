@@ -19,9 +19,10 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
   (`image_url`) dengan teks alternatif (`image_alt`) untuk aksesibilitas & SEO. Judul slide tetap
   ada sebagai heading tersembunyi (`visually-hidden`) sehingga struktur SEO/a11y tidak hilang.
   Opsional `show_caption=1` menampilkan overlay teks (eyebrow, judul, deskripsi, CTA) di atas gambar.
-- **Klien & Mitra**: section `#klien` menampilkan tile klien per industri (monogram + nama +
-  segmen) dan kartu mitra/ekosistem teknologi, keduanya dirender dari MySQL
-  (`GET /api/clients`) dengan fallback markup statis.
+- **Klien** (section `#klien`): tile logo klien per industri (gambar logo + nama + segmen),
+  dirender dari MySQL (`GET /api/clients`) dengan fallback markup statis.
+- **Mitra** (section `#mitra`, terpisah dari Klien): kartu logo mitra/ekosistem teknologi
+  (gambar logo + nama + deskripsi + kategori) pada bagian berlatar lembut sendiri.
 - **Konten dinamis dari MySQL**: kartu layanan, produk, sektor, klien, mitra, dan artikel dirender dari
   database (dengan fallback markup statis bila API tidak terjangkau).
 - **SEO & branding otomatis dari CMS**: `<title>`, meta description/keywords, Open Graph,
@@ -45,9 +46,14 @@ manajemen konten, SEO, branding, dan analisis pengunjung.
 - **Indikator kata kunci**: CRUD target keyword (volume, difficulty, rank, URL target, intent,
   status) + pencatatan riwayat peringkat.
 - **Manajemen lead**: daftar prospek beserta perubahan status (`new`, `contacted`, `won`, `lost`).
-- **Manajemen Klien & Mitra**: CRUD penuh untuk tabel `clients` (nama, segmen, monogram, urutan, status
-  aktif) dan `partners` (nama, kategori, deskripsi, monogram, urutan, status aktif) — perubahan
-  langsung tampil pada section `#klien` di landing page. Slug dibuat otomatis dan dijamin unik.
+- **Manajemen Klien & Mitra**: CRUD penuh untuk tabel `clients` (nama, segmen, monogram, URL logo,
+  teks alt logo, urutan, status aktif) dan `partners` (nama, kategori, deskripsi, monogram, URL logo,
+  teks alt logo, urutan, status aktif) — perubahan langsung tampil pada section `#klien` dan `#mitra`
+  di landing page. Slug dibuat otomatis dan dijamin unik.
+- **Logo Klien & Mitra**: gambar logo dapat diisi lewat **URL** (`image_url`) atau diunggah langsung
+  dari CMS (input *Upload Logo* → `POST /api/admin/media/upload`, maks 5 MB, format png/jpg/webp/gif/svg)
+  dan tersimpan di `public/uploads/clients/` atau `public/uploads/partners/`. Pratinjau logo
+  tampil di form dan thumbnail di tabel.
 - **Manajemen Banner Slideshow**: CRUD penuh untuk slide hero carousel (judul + highlight, eyebrow,
   deskripsi ber-HTML, dua CTA, panel visual, warna aksen, chips, badges, urutan, status aktif) —
   perubahan langsung tampil pada hero landing page. Slug dibuat otomatis dan dijamin unik.
@@ -121,8 +127,8 @@ Database `itv_corporate` (charset `utf8mb4` / `utf8mb4_unicode_ci`, engine InnoD
 | `services` | 4 pilar solusi (icon, deskripsi, fitur JSON)          |
 | `products` | 6 produk enterprise (deskripsi, fitur JSON, sektor)   |
 | `sectors`  | 7 sektor penempatan layanan (deskripsi, tags)         |
-| `clients`  | 10 klien per industri (nama, segmen, monogram)        |
-| `partners` | 8 mitra/ekosistem teknologi (kategori, deskripsi)     |
+| `clients`  | 10 klien per industri (nama, segmen, monogram, logo)   |
+| `partners` | 8 mitra/ekosistem teknologi (kategori, deskripsi, logo) |
 | `banners`  | Slide hero carousel (judul, CTA, chips, badges, urutan, `image_url`, `image_alt`, `show_caption`) |
 | `leads`    | Permintaan konsultasi dari form situs (status `new`)  |
 
@@ -194,6 +200,7 @@ Kolom `features`, `tags`, dan `meta` bertipe `JSON` dan dibaca API lewat `JSON.p
 | PUT    | `/api/admin/banners/:id`       | Ubah slide banner                          |
 | DELETE | `/api/admin/banners/:id`       | Hapus slide banner                         |
 | POST   | `/api/admin/banners/upload`    | Unggah gambar banner (base64 data URL)    |
+| POST   | `/api/admin/media/upload`      | Unggah logo klien/mitra (folder clients/partners) |
 | GET    | `/api/admin/leads`             | Daftar prospek                             |
 | PUT    | `/api/admin/leads/:id`         | Ubah status prospek                        |
 
@@ -278,7 +285,10 @@ menjalankan API, sehingga form perlu diarahkan ke form service pihak ketiga).
     ├── script.js        # render dari API + SEO/branding + pelacakan
     ├── favicon.svg      # favicon 64×64 (ITV)
     ├── img/
-    │   └── og-default.svg  # gambar Open Graph default 1200×630
+    │   ├── og-default.svg  # gambar Open Graph default 1200×630
+    │   ├── clients/       # 10 placeholder logo klien (SVG 320×200)
+    │   └── partners/      # 8 placeholder logo mitra (SVG 320×200)
+    ├── uploads/           # hasil unggahan CMS (banner, clients, partners)
     ├── vendor/
     │   └── bootstrap-icons/ # Bootstrap Icons 1.11.3 (lokal, tanpa CDN)
     │       ├── bootstrap-icons.min.css

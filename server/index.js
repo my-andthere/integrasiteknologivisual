@@ -11,8 +11,9 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
 
 const app = express();
-// Upload gambar banner butuh payload lebih besar (base64) — parser khusus didahulukan.
+// Upload gambar (banner/klien/mitra) butuh payload lebih besar (base64) — parser khusus didahulukan.
 app.use('/api/admin/banners/upload', express.json({ limit: '8mb' }));
+app.use('/api/admin/media/upload', express.json({ limit: '8mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -75,8 +76,12 @@ app.get('/api/sectors', async (_req, res, next) => {
 app.get('/api/clients', async (_req, res, next) => {
   try {
     const [clients, partners] = await Promise.all([
-      query('SELECT slug, name, segment, initials FROM clients WHERE is_active = 1 ORDER BY sort_order, id'),
-          query('SELECT slug, name, category, description, initials FROM partners WHERE is_active = 1 ORDER BY sort_order, id')
+      query(
+        'SELECT slug, name, segment, initials, image_url, image_alt FROM clients WHERE is_active = 1 ORDER BY sort_order, id'
+      ),
+      query(
+        'SELECT slug, name, category, description, initials, image_url, image_alt FROM partners WHERE is_active = 1 ORDER BY sort_order, id'
+      )
     ]);
     res.json({ clients, partners });
   } catch (e) { next(e); }
