@@ -62,6 +62,15 @@ npm start          # http://localhost:3000
 
 **Kredensial CMS default**: username `admin`, password `admin123` — **ganti setelah login pertama**.
 
+### Troubleshooting login CMS
+
+| Gejala | Penyebab & solusi |
+|--------|-------------------|
+| Tombol "Masuk" tidak merespons, atau panel login tetap tampil setelah berhasil login | Hard refresh (`Ctrl+Shift+R`) agar CSS terbaru ter-cache. Overlay login memakai properti `hidden`; stylesheet sudah memaksa `[hidden] { display: none !important; }` |
+| "Username atau password salah" | Kredensial default: `admin` / `admin123`. Password di-hash dengan scrypt + salt `itv-salt-2026`, jadi tidak bisa dibaca dari database |
+| Halaman login masih terlihat setelah login, dashboard di bawahnya | Buka DevTools → Console, cek error JS. Jalankan ulang server: `npm start` |
+| API `/api/admin/login` 401 | Sesi di `cms_sessions` kedaluwarsa (12 jam) atau tabel sesi kosong. Hapus baris di `cms_sessions` lalu login ulang |
+
 ---
 
 ## 3. Konfigurasi `.env`
@@ -179,6 +188,19 @@ Situs publik membaca konfigurasi dari CMS secara otomatis setiap kali halaman di
 | Konten            | Tabel `articles` (status `published`)                        | Grid "Insight" + halaman artikel           |
 | Pelacakan         | Tabel `page_views`, `analytics_events`                       | Dashboard & halaman Analitik di CMS         |
 
+### Nilai bawaan SEO (hasil seed `server/schema-cms.sql`)
+
+| Key | Nilai bawaan | Panjang |
+|-----|--------------|---------|
+| `seo.site_title` | `PT. Integration Teknologi Visual — Solusi Digital Enterprise` | 60 karakter |
+| `seo.meta_description` | `PT. Integration Teknologi Visual menyediakan software enterprise, digital signage, integrasi sistem, dan AI automation untuk korporasi di Indonesia.` | 148 karakter |
+| `seo.canonical_base` | `https://www.integrasiteknologivisual.com` | — |
+| `seo.og_image` | `/img/og-default.svg` | 1200×630 |
+| `seo.title_template` | `%s \| PT. Integration Teknologi Visual` | — |
+
+Skor audit SEO bawaan: **86/100** (satu item belum terisi: `seo.google_site_verification` —
+isi dengan kode verifikasi Google Search Console Anda).
+
 ---
 
 ## 7. Menjalankan di Codespaces / hosting
@@ -215,6 +237,9 @@ menjalankan API, sehingga form perlu diarahkan ke form service pihak ketiga).
     ├── artikel.html     # halaman detail artikel
     ├── styles.css
     ├── script.js        # render dari API + SEO/branding + pelacakan
+    ├── favicon.svg      # favicon 64×64 (ITV)
+    ├── img/
+    │   └── og-default.svg  # gambar Open Graph default 1200×630
     └── admin/
         ├── index.html   # shell portal CMS
         ├── admin.css
