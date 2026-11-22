@@ -54,6 +54,7 @@ export function mapBanner(row) {
       .split(',')
       .map((c) => c.trim())
       .filter(Boolean),
-    badges: parseJson(row.badges, [])
+    badges: parseJson(row.badges, []),
+    translations: parseJson(row.translations, null)
   };
 }

@@ -127,6 +127,42 @@ function el(tag, className, text) {
   return node;
 }
 
+/* --- Terjemahan pesan runtime (lihat public/i18n-data.js -> "j") --- */
+function tr(text, vars) {
+  if (window.ITV && typeof window.ITV.tm === 'function') return window.ITV.tm(text, vars);
+  return text;
+}
+
+/* --- Bahasa aktif untuk konten dinamis dari database --- */
+function currentLang() {
+  return window.ITV && typeof window.ITV.getLang === 'function' ? window.ITV.getLang() : 'id';
+}
+
+/* --- Ambil field terjemahan dari payload DB (fallback ke Bahasa Indonesia) --- */
+function tf(item, field, fallback) {
+  if (!item) return fallback;
+  const lang = currentLang();
+  const tr2 = item.translations;
+  if (lang !== 'id' && tr2) {
+    let bag = null;
+    try {
+      bag = typeof tr2 === 'string' ? JSON.parse(tr2) : tr2;
+    } catch { bag = null; }
+    if (bag && bag[lang] && bag[lang][field] !== undefined && bag[lang][field] !== null) {
+      return bag[lang][field];
+    }
+  }
+  return item[field] !== undefined && item[field] !== null ? item[field] : fallback;
+}
+
+/* --- Format angka/tanggal sesuai bahasa aktif --- */
+function localeTag() {
+  const lang = currentLang();
+  if (lang === 'en') return 'en-GB';
+  if (lang === 'ja') return 'ja-JP';
+  return 'id-ID';
+}
+
 /* --- Ikon Bootstrap Icons (dari nama ikon di database) --- */
 function biIcon(name) {
   const safe = String(name || 'gear').replace(/[^a-z0-9-]/gi, '') || 'gear';
@@ -818,6 +854,256 @@ function renderClients(payload) {
   }
 }
 
+/* =========================================================
+   KARIER: Lowongan, Magang, PKL + Open Partner
+   ========================================================= */
+
+/** Daftar requirement/benefit -> array aman untuk ditampilkan. */
+function toList(value) {
+  if (Array.isArray(value)) return value.filter((v) => String(v || '').trim());
+  if (typeof value === 'string' && value.trim()) {
+    return value.split('\n').map((v) => v.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/** Label jenis lowongan sesuai bahasa aktif. */
+function jobTypeLabel(type) {
+  const map = {
+    lowongan: { id: 'Lowongan', en: 'Full-time Role', ja: '正社員募集' },
+    magang: { id: 'Magang', en: 'Internship', ja: 'インターン' },
+    pkl: { id: 'PKL', en: 'On-the-job Training', ja: '実地実習（PKL）' }
+  };
+  const entry = map[type] || map.lowongan;
+  return tr(entry[currentLang()] || entry.id);
+}
+
+/** Ikon sesuai jenis lowongan. */
+function jobTypeIcon(type) {
+  if (type === 'magang') return 'mortarboard';
+  if (type === 'pkl') return 'tools';
+  return 'briefcase';
+}
+
+function renderJobs(items) {
+  const grid = document.getElementById('jobs-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!items || !items.length) {
+    grid.appendChild(el('p', 'muted', tr('Belum ada lowongan yang tersedia saat ini.')));
+    return;
+  }
+
+  items.forEach((job) => {
+    const card = el('article', 'card job-card reveal visible');
+
+    /* Kepala: ikon + jenis + judul */
+    const head = el('div', 'job-card__head');
+    const icon = el('div', 'job-card__icon');
+    icon.appendChild(el('i', 'bi bi-' + jobTypeIcon(job.type)));
+    head.appendChild(icon);
+
+    const headText = el('div', 'job-card__headtext');
+    const badge = el('span', 'job-card__badge', jobTypeLabel(job.type));
+    headText.appendChild(badge);
+    headText.appendChild(el('h3', 'job-card__title', tr(tf(job, 'title', job.title || ''))));
+    head.appendChild(headText);
+    card.appendChild(head);
+
+    /* Meta: departemen, lokasi, mode kerja */
+    const meta = el('ul', 'job-card__meta');
+    const dept = tf(job, 'department', job.department || '');
+    const loc = tf(job, 'location', job.location || '');
+    if (dept) meta.appendChild(jobMetaItem('diagram-3', dept));
+    if (loc) meta.appendChild(jobMetaItem('geo-alt', loc));
+    if (job.work_mode) meta.appendChild(jobMetaItem('building', job.work_mode));
+    if (job.employment) meta.appendChild(jobMetaItem('clock', job.employment));
+    if (meta.childElementCount) card.appendChild(meta);
+
+    /* Deskripsi ringkas (versi lengkap ada di panel detail) */
+    const desc = tf(job, 'description', job.description || '');
+    if (desc) card.appendChild(el('p', 'job-card__desc', tr(desc)));
+
+    /* Requirement & benefit -> hanya di panel detail */
+    const reqs = toList(tf(job, 'requirements', job.requirements));
+    const bens = toList(tf(job, 'benefits', job.benefits));
+
+    /* Aksi */
+    const actions = el('div', 'job-card__actions');
+    const apply = el('a', 'btn btn--primary btn--sm');
+    apply.href = '#kontak';
+    apply.setAttribute('data-track', 'job_apply');
+    apply.textContent = tr('Lamar Sekarang');
+    actions.appendChild(apply);
+
+    const detail = el('button', 'btn btn--outline btn--sm');
+    detail.type = 'button';
+    detail.setAttribute('data-track', 'job_detail');
+    detail.textContent = tr('Lihat Detail');
+    detail.addEventListener('click', () => {
+      toggleJobDetail(card, job, reqs, bens);
+      detail.textContent = card.querySelector('.job-card__detail')
+        ? tr('Sembunyikan Detail') : tr('Lihat Detail');
+    });
+    actions.appendChild(detail);
+    card.appendChild(actions);
+
+    grid.appendChild(card);
+  });
+}
+
+/** Baris meta kecil dengan ikon. */
+function jobMetaItem(icon, text) {
+  const li = el('li');
+  li.appendChild(el('i', 'bi bi-' + icon));
+  li.appendChild(document.createTextNode(' ' + text));
+  return li;
+}
+
+/** Buka/tutup detail lowongan (deskripsi + kualifikasi lengkap). */
+function toggleJobDetail(card, job, reqs, bens) {
+  const existing = card.querySelector('.job-card__detail');
+  if (existing) { existing.remove(); return; }
+
+  const detail = el('div', 'job-card__detail');
+
+  if (reqs.length) {
+    detail.appendChild(el('h4', 'job-card__listtitle', tr('Kualifikasi')));
+    const ul = el('ul', 'job-card__ul');
+    reqs.forEach((r) => ul.appendChild(el('li', '', tr(r))));
+    detail.appendChild(ul);
+  }
+  if (bens.length) {
+    detail.appendChild(el('h4', 'job-card__listtitle', tr('Yang Anda Dapatkan')));
+    const ul = el('ul', 'job-card__ul job-card__ul--ben');
+    bens.forEach((b) => ul.appendChild(el('li', '', tr(b))));
+    detail.appendChild(ul);
+  }
+  card.appendChild(detail);
+}
+
+/** Render program Open Partner. */
+function renderPartnerPrograms(items) {
+  const grid = document.getElementById('partner-programs-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!items || !items.length) {
+    grid.appendChild(el('p', 'muted', tr('Belum ada program kemitraan yang tersedia saat ini.')));
+    return;
+  }
+
+  items.forEach((p) => {
+    const card = el('article', 'card partner-program reveal visible');
+
+    const icon = el('div', 'partner-program__icon');
+    icon.appendChild(el('i', 'bi bi-' + partnerProgramIcon(p.category)));
+    card.appendChild(icon);
+
+    card.appendChild(el('span', 'partner-program__cat', tr(tf(p, 'category', p.category || ''))));
+    card.appendChild(el('h3', 'partner-program__title', tr(tf(p, 'title', p.title || ''))));
+
+    const desc = tf(p, 'description', p.description || '');
+    if (desc) card.appendChild(el('p', 'partner-program__desc', tr(desc)));
+
+    const bens = toList(tf(p, 'benefits', p.benefits));
+    if (bens.length) {
+      const ul = el('ul', 'partner-program__ul');
+      bens.forEach((b) => {
+        const li = el('li');
+        li.appendChild(el('i', 'bi bi-check2-circle'));
+        li.appendChild(document.createTextNode(' ' + tr(b)));
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+    }
+
+    const reqs = toList(tf(p, 'requirements', p.requirements));
+    if (reqs.length) {
+      const box = el('details', 'partner-program__req');
+      const sum = document.createElement('summary');
+      sum.textContent = tr('Syarat Kemitraan');
+      box.appendChild(sum);
+      const ul = el('ul', 'partner-program__ul');
+      reqs.forEach((r) => {
+        const li = el('li');
+        li.appendChild(el('i', 'bi bi-dot'));
+        li.appendChild(document.createTextNode(' ' + tr(r)));
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+      card.appendChild(box);
+    }
+
+    const actions = el('div', 'partner-program__actions');
+    const cta = el('a', 'btn btn--primary btn--sm');
+    cta.href = p.cta_url || '#kontak';
+    cta.setAttribute('data-track', 'partner_program_apply');
+    cta.textContent = tr(tf(p, 'cta_label', p.cta_label || 'Ajukan Kemitraan'));
+    actions.appendChild(cta);
+    card.appendChild(actions);
+
+    grid.appendChild(card);
+  });
+}
+
+/** Ikon program kemitraan sesuai kategori. */
+function partnerProgramIcon(category) {
+  const map = {
+    Technology: 'cpu', Integrator: 'diagram-3', Referral: 'share',
+    Reseller: 'cart', OEM: 'box-seam', Cloud: 'cloud'
+  };
+  return map[category] || 'people';
+}
+
+/* --- Muat data karier dari CMS --- */
+let allJobs = [];
+let activeJobFilter = 'lowongan';
+
+async function loadJobs() {
+  try {
+    const data = await api('/jobs');
+    allJobs = Array.isArray(data) ? data : (data.jobs || []);
+    applyJobFilter();
+  } catch {
+    const grid = document.getElementById('jobs-grid');
+    if (grid) grid.innerHTML = '<p class="muted">' + tr('Lowongan belum dapat dimuat.') + '</p>';
+  }
+}
+
+function applyJobFilter() {
+  const list = allJobs.filter((j) => !activeJobFilter || j.type === activeJobFilter);
+  renderJobs(list);
+}
+
+/* --- Muat data Open Partner --- */
+async function loadPartnerPrograms() {
+  try {
+    const data = await api('/partner-programs');
+    const items = Array.isArray(data) ? data : (data.programs || []);
+    renderPartnerPrograms(items);
+  } catch {
+    const grid = document.getElementById('partner-programs-grid');
+    if (grid) grid.innerHTML = '<p class="muted">' + tr('Program kemitraan belum dapat dimuat.') + '</p>';
+  }
+}
+
+/* --- Tab filter lowongan --- */
+function initJobTabs() {
+  const tabs = document.querySelectorAll('[data-job-filter]');
+  if (!tabs.length) return;
+  tabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeJobFilter = btn.getAttribute('data-job-filter') || 'lowongan';
+      tabs.forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      applyJobFilter();
+    });
+  });
+}
+
 async function loadClients() {
   try {
     const data = await api('/clients');
@@ -867,12 +1153,20 @@ function buildBannerImageSlide(slide, index, isFirst) {
   article.setAttribute('data-banner-slide', String(index + 1));
   article.setAttribute('role', 'group');
   article.setAttribute('aria-roledescription', 'slide');
-  article.setAttribute('aria-label', slide.image_alt || slide.title || 'Sorotan ' + (index + 1));
+  const L_TITLE = tf(slide, 'title', slide.title || '');
+  const L_HIGHLIGHT = tf(slide, 'title_highlight', slide.title_highlight || '');
+  const L_EYEBROW = tf(slide, 'eyebrow', slide.eyebrow || '');
+  const L_DESCRIPTION = tf(slide, 'description', slide.description || '');
+  const L_CTA = tf(slide, 'cta_label', slide.cta_label || '');
+  const L_CTA2 = tf(slide, 'cta2_label', slide.cta2_label || '');
+  const L_ALT = tf(slide, 'image_alt', slide.image_alt || slide.title || '');
+
+  article.setAttribute('aria-label', L_ALT || 'Sorotan ' + (index + 1));
 
   const img = document.createElement('img');
   img.className = 'banner__image';
   img.src = slide.image_url;
-  img.alt = slide.image_alt || slide.title || '';
+  img.alt = L_ALT;
   img.loading = index === 0 ? 'eager' : 'lazy';
   img.decoding = 'async';
   article.appendChild(img);
@@ -886,56 +1180,56 @@ function buildBannerImageSlide(slide, index, isFirst) {
     // Slide gambar murni: judul tetap ada untuk SEO/aksesibilitas.
     const sr = document.createElement(isFirst ? 'h1' : 'h2');
     sr.className = 'visually-hidden';
-    sr.textContent = [slide.title, slide.title_highlight].filter(Boolean).join(' ');
+    sr.textContent = [L_TITLE, L_HIGHLIGHT].filter(Boolean).join(' ');
     article.appendChild(sr);
   }
 
-  if (showCaption && (slide.title || slide.description || slide.cta_label)) {
+  if (showCaption && (L_TITLE || L_DESCRIPTION || L_CTA)) {
     const caption = document.createElement('div');
     caption.className = 'wrap banner__caption';
 
-    if (slide.eyebrow) {
+    if (L_EYEBROW) {
       const eyebrow = document.createElement('span');
       eyebrow.className = 'eyebrow';
-      eyebrow.textContent = slide.eyebrow;
+      eyebrow.textContent = L_EYEBROW;
       caption.appendChild(eyebrow);
     }
 
     const heading = document.createElement(isFirst ? 'h1' : 'h2');
     heading.className = 'banner__title';
-    heading.appendChild(document.createTextNode(slide.title || ''));
-    if (slide.title_highlight) {
+    heading.appendChild(document.createTextNode(L_TITLE));
+    if (L_HIGHLIGHT) {
       const hl = document.createElement('span');
-      hl.textContent = slide.title_highlight;
+      hl.textContent = L_HIGHLIGHT;
       heading.appendChild(document.createTextNode(' '));
       heading.appendChild(hl);
     }
     caption.appendChild(heading);
 
-    if (slide.description) {
+    if (L_DESCRIPTION) {
       const lead = document.createElement('p');
       lead.className = 'hero__lead';
-      lead.innerHTML = sanitizeRichHtml(slide.description);
+      lead.innerHTML = sanitizeRichHtml(L_DESCRIPTION);
       caption.appendChild(lead);
     }
 
-    if (slide.cta_label || slide.cta2_label) {
+    if (L_CTA || L_CTA2) {
       const actions = document.createElement('div');
       actions.className = 'hero__actions';
-      if (slide.cta_label) {
+      if (L_CTA) {
         const a = document.createElement('a');
         a.href = slide.cta_url || '#kontak';
         a.className = 'btn btn--primary';
         a.setAttribute('data-track', 'cta_hero_konsultasi');
-        a.textContent = slide.cta_label;
+        a.textContent = L_CTA;
         actions.appendChild(a);
       }
-      if (slide.cta2_label) {
+      if (L_CTA2) {
         const a = document.createElement('a');
         a.href = slide.cta2_url || '#layanan';
         a.className = 'btn btn--ghost';
         a.setAttribute('data-track', 'cta_hero_layanan');
-        a.textContent = slide.cta2_label;
+        a.textContent = L_CTA2;
         actions.appendChild(a);
       }
       caption.appendChild(actions);
@@ -1101,3 +1395,21 @@ async function loadBanners() {
 initBanner();
 loadBanners();
 loadClients();
+initJobTabs();
+loadJobs();
+loadPartnerPrograms();
+
+/* Muat ulang konten dinamis saat pengunjung berganti bahasa (ID / EN / JA).
+   initLeadForm() sengaja TIDAK dipanggil ulang agar listener submit tidak
+   terpasang dua kali. */
+if (window.ITV && typeof window.ITV.onChange === 'function') {
+  window.ITV.onChange(() => {
+    loadContent();
+    loadSiteConfig();
+    loadArticles();
+    loadBanners();
+    loadClients();
+    loadJobs();
+    loadPartnerPrograms();
+  });
+}

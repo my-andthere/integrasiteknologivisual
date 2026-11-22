@@ -142,6 +142,21 @@ small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; 
 .grid-editor { display: grid; grid-template-columns: 1fr; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 
+/* ---------- Blok terjemahan EN / JA ---------- */
+.trans-block { border: 1px solid var(--line); border-radius: 12px; padding: 0; background: var(--bg-soft); }
+.trans-block > summary { cursor: pointer; padding: 12px 16px; font-weight: 700; font-size: .9rem; color: var(--ink); list-style: none; display: flex; align-items: center; gap: 8px; }
+.trans-block > summary::-webkit-details-marker { display: none; }
+.trans-block > summary::after { content: '\25BE'; margin-left: auto; font-size: .7rem; color: var(--muted); transition: transform .18s ease; }
+.trans-block[open] > summary::after { transform: rotate(180deg); }
+.trans-block > summary i { color: var(--blue); }
+.trans-block > *:not(summary) { margin-left: 16px; margin-right: 16px; }
+.trans-block > *:last-child:not(summary) { margin-bottom: 16px; }
+.trans-block label { display: block; margin-bottom: 10px; font-size: .84rem; }
+.trans-block input,
+.trans-block textarea { width: 100%; }
+.grid-form .trans-block.col-2 { align-self: stretch; }
+.grid-editor .trans-block { margin-top: 4px; }
+
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 10px 16px;

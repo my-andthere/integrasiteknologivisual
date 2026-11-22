@@ -109,6 +109,7 @@
       keywords: loadKeywords,
       clients: loadClientsPartners,
       banners: loadBanners,
+      careers: loadCareers,
       analytics: loadAnalytics,
       leads: loadLeads
     };
@@ -242,10 +243,12 @@
       form.seo_description.value = a.seo_description || '';
       form.focus_keyword.value = a.focus_keyword || '';
       form.keywords.value = (a.keywords || []).map((k) => k.keyword).join(', ');
+      fillTranslations(form, 'article', a.translations);
       form.dataset.id = a.id;
     } else {
       delete form.dataset.id;
       form.status.value = 'draft';
+      fillTranslations(form, 'article', null);
     }
     updateSerpPreview();
     showView('editor');
@@ -285,7 +288,8 @@
       seo_title: form.seo_title.value,
       seo_description: form.seo_description.value,
       focus_keyword: form.focus_keyword.value,
-      keywords: form.keywords.value.split(',').map((k) => k.trim()).filter(Boolean)
+      keywords: form.keywords.value.split(',').map((k) => k.trim()).filter(Boolean),
+      translations: collectTranslations(form, 'article')
     };
     try {
       if (form.dataset.id) {
@@ -698,6 +702,207 @@
     });
   }
 
+  /* =========================================================
+     KARIER & OPEN PARTNER
+     ========================================================= */
+  let allJobs = [];
+  let allPartnerPrograms = [];
+
+  const JOB_TYPE_LABEL = {
+    lowongan: 'Lowongan', magang: 'Magang', pkl: 'PKL'
+  };
+
+  async function loadCareers() {
+    try {
+      const [j, p] = await Promise.all([
+        api('/admin/jobs'),
+        api('/admin/partner-programs')
+      ]);
+      allJobs = j.jobs || [];
+      allPartnerPrograms = p.programs || [];
+      fillOptions($('#partnerProgramCategory'), p.categories || [], 'Technology');
+      renderJobsTable();
+      renderPartnerProgramsTable();
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  /** Ubah array / teks multi-baris menjadi teks textarea. */
+  function listToText(value) {
+    if (Array.isArray(value)) return value.join('\n');
+    return value || '';
+  }
+
+  function renderJobsTable() {
+    const tb = $('#jobTable tbody');
+    if (!tb) return;
+    tb.innerHTML = allJobs.length ? allJobs.map((j) => `
+      <tr>
+        <td><strong>${escapeHtml(j.title)}</strong><br><small>/${escapeHtml(j.slug)}</small></td>
+        <td><span class="badge badge--published">${escapeHtml(JOB_TYPE_LABEL[j.type] || j.type)}</span></td>
+        <td>${escapeHtml(j.department || '-')}</td>
+        <td>${escapeHtml(j.location || '-')}</td>
+        <td>${escapeHtml(j.work_mode || '-')}</td>
+        <td>${fmt(j.sort_order)}</td>
+        <td>${statusBadge(j.is_active)}</td>
+        <td>
+          <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${j.id}">Edit</button>
+          <button class="btn btn--ghost btn--sm" data-act="del" data-id="${j.id}">Hapus</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="8" class="muted">Belum ada lowongan.</td></tr>';
+
+    $$('#jobTable [data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const job = allJobs.find((x) => String(x.id) === String(btn.dataset.id));
+        if (btn.dataset.act === 'edit') {
+          const form = $('#jobForm');
+          form.id.value = job.id;
+          form.title.value = job.title || '';
+          form.type.value = job.type || 'lowongan';
+          form.department.value = job.department || '';
+          form.location.value = job.location || '';
+          form.work_mode.value = job.work_mode || 'Onsite';
+          form.employment.value = job.employment || 'Full-time';
+          form.description.value = job.description || '';
+          form.requirements.value = listToText(job.requirements);
+          form.benefits.value = listToText(job.benefits);
+          form.sort_order.value = job.sort_order;
+          form.is_active.value = String(job.is_active);
+          fillTranslations(form, 'job', job.translations);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (!confirm('Hapus lowongan ini?')) return;
+          api(`/admin/jobs/${btn.dataset.id}`, { method: 'DELETE' })
+            .then(() => { toast('Lowongan dihapus'); loadCareers(); })
+            .catch((e) => toast(e.message));
+        }
+      });
+    });
+  }
+
+  function renderPartnerProgramsTable() {
+    const tb = $('#partnerProgramTable tbody');
+    if (!tb) return;
+    tb.innerHTML = allPartnerPrograms.length ? allPartnerPrograms.map((p) => `
+      <tr>
+        <td><strong>${escapeHtml(p.title)}</strong><br><small>/${escapeHtml(p.slug)}</small></td>
+        <td>${escapeHtml(p.category || '-')}</td>
+        <td>${escapeHtml(p.cta_label || '-')}</td>
+        <td>${fmt(p.sort_order)}</td>
+        <td>${statusBadge(p.is_active)}</td>
+        <td>
+          <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${p.id}">Edit</button>
+          <button class="btn btn--ghost btn--sm" data-act="del" data-id="${p.id}">Hapus</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="6" class="muted">Belum ada program kemitraan.</td></tr>';
+
+    $$('#partnerProgramTable [data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const prog = allPartnerPrograms.find((x) => String(x.id) === String(btn.dataset.id));
+        if (btn.dataset.act === 'edit') {
+          const form = $('#partnerProgramForm');
+          form.id.value = prog.id;
+          form.title.value = prog.title || '';
+          ensureOption(form.category, prog.category);
+          form.description.value = prog.description || '';
+          form.benefits.value = listToText(prog.benefits);
+          form.requirements.value = listToText(prog.requirements);
+          form.cta_label.value = prog.cta_label || '';
+          form.cta_url.value = prog.cta_url || '';
+          form.sort_order.value = prog.sort_order;
+          form.is_active.value = String(prog.is_active);
+          fillTranslations(form, 'partnerProgram', prog.translations);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          if (!confirm('Hapus program kemitraan ini?')) return;
+          api(`/admin/partner-programs/${btn.dataset.id}`, { method: 'DELETE' })
+            .then(() => { toast('Program kemitraan dihapus'); loadCareers(); })
+            .catch((e) => toast(e.message));
+        }
+      });
+    });
+  }
+
+  $('#jobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      title: form.title.value,
+      type: form.type.value,
+      department: form.department.value,
+      location: form.location.value,
+      work_mode: form.work_mode.value,
+      employment: form.employment.value,
+      description: form.description.value,
+      requirements: form.requirements.value,
+      benefits: form.benefits.value,
+      sort_order: num(form.sort_order.value),
+      is_active: form.is_active.value === '1',
+      translations: collectTranslations(form, 'job')
+    };
+    try {
+      if (form.id.value) {
+        await api(`/admin/jobs/${form.id.value}`, { method: 'PUT', body });
+      } else {
+        await api('/admin/jobs', { method: 'POST', body });
+      }
+      toast(form.id.value ? 'Lowongan diperbarui' : 'Lowongan dibuat');
+      form.reset();
+      fillTranslations(form, 'job', null);
+      loadCareers();
+    } catch (err) {
+      toast(err.message);
+    }
+  });
+
+  $('#partnerProgramForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const body = {
+      title: form.title.value,
+      category: form.category.value,
+      description: form.description.value,
+      benefits: form.benefits.value,
+      requirements: form.requirements.value,
+      cta_label: form.cta_label.value,
+      cta_url: form.cta_url.value,
+      sort_order: num(form.sort_order.value),
+      is_active: form.is_active.value === '1',
+      translations: collectTranslations(form, 'partnerProgram')
+    };
+    try {
+      if (form.id.value) {
+        await api(`/admin/partner-programs/${form.id.value}`, { method: 'PUT', body });
+      } else {
+        await api('/admin/partner-programs', { method: 'POST', body });
+      }
+      toast(form.id.value ? 'Program kemitraan diperbarui' : 'Program kemitraan dibuat');
+      form.reset();
+      fillTranslations(form, 'partnerProgram', null);
+      loadCareers();
+    } catch (err) {
+      toast(err.message);
+    }
+  });
+
+  $('#resetJob').addEventListener('click', () => {
+    const form = $('#jobForm');
+    form.reset();
+    form.id.value = '';
+    form.type.value = 'lowongan';
+    form.work_mode.value = 'Onsite';
+    form.employment.value = 'Full-time';
+    fillTranslations(form, 'job', null);
+  });
+
+  $('#resetPartnerProgram').addEventListener('click', () => {
+    const form = $('#partnerProgramForm');
+    form.reset();
+    form.id.value = '';
+    fillTranslations(form, 'partnerProgram', null);
+  });
+
   bindLogoForm('#clientForm', 'clients', 'clientPreview', 'clientPreviewImg');
   bindLogoForm('#partnerForm', 'partners', 'partnerPreview', 'partnerPreviewImg');
 
@@ -753,6 +958,7 @@
           form.image_url.value = b.image_url || '';
           form.image_alt.value = b.image_alt || '';
           form.show_caption.value = String(Number(b.show_caption) === 1 ? '1' : '0');
+          fillTranslations(form, 'banner', b.translations);
           form.image_file.value = '';
           updateBannerPreview(form.image_url.value);
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -764,6 +970,61 @@
         }
       });
     });
+  }
+
+  /* =========================================================
+     Terjemahan EN / JA — pembantu bersama
+     ========================================================= */
+
+  /** Kolom yang boleh diterjemahkan per entitas. */
+  const TRANS_FIELDS = {
+    banner: ['title', 'title_highlight', 'eyebrow', 'description', 'cta_label', 'cta2_label',
+      'visual_title', 'visual_label', 'visual_caption', 'image_alt', 'chips'],
+    article: ['title', 'excerpt', 'content', 'category', 'tags', 'seo_title', 'seo_description'],
+    job: ['title', 'department', 'location', 'description', 'requirements', 'benefits'],
+    partnerProgram: ['title', 'category', 'description', 'benefits', 'requirements', 'cta_label']
+  };
+
+  /**
+   * Baca input t_<lang>_<field> dari form dan susun objek translations.
+   * Mengembalikan null bila seluruh kolom kosong (biar kolom DB tetap bersih).
+   */
+  function collectTranslations(form, kind) {
+    const fields = TRANS_FIELDS[kind] || [];
+    const out = {};
+    ['en', 'ja'].forEach((lang) => {
+      const bag = {};
+      fields.forEach((f) => {
+        const input = form['t_' + lang + '_' + f];
+        if (!input) return;
+        const val = String(input.value || '').trim();
+        if (val) bag[f] = val;
+      });
+      if (Object.keys(bag).length) out[lang] = bag;
+    });
+    return Object.keys(out).length ? out : null;
+  }
+
+  /** Isi input t_<lang>_<field> dari objek translations milik entitas. */
+  function fillTranslations(form, kind, translations) {
+    const fields = TRANS_FIELDS[kind] || [];
+    let bag = translations;
+    if (typeof bag === 'string') { try { bag = JSON.parse(bag); } catch { bag = null; } }
+    if (!bag || typeof bag !== 'object') bag = {};
+    ['en', 'ja'].forEach((lang) => {
+      const src = bag[lang] && typeof bag[lang] === 'object' ? bag[lang] : {};
+      fields.forEach((f) => {
+        const input = form['t_' + lang + '_' + f];
+        if (!input) return;
+        const val = src[f];
+        if (val === undefined || val === null) { input.value = ''; return; }
+        /* Array (dari DB) diserialkan dengan baris baru agar cocok dengan
+           textarea multi-baris; string disimpan apa adanya. */
+        input.value = Array.isArray(val) ? val.join('\n') : String(val);
+      });
+    });
+    const block = form.querySelector('[data-trans-block="' + kind + '"]');
+    if (block) block.open = Object.keys(bag).length > 0;
   }
 
   $('#bannerForm').addEventListener('submit', async (e) => {
@@ -789,7 +1050,8 @@
       is_active: form.is_active.value === '1',
       image_url: form.image_url.value,
       image_alt: form.image_alt.value,
-      show_caption: form.show_caption.value === '1'
+      show_caption: form.show_caption.value === '1',
+      translations: collectTranslations(form, 'banner')
     };
     try {
       const file = form.image_file.files && form.image_file.files[0];
@@ -814,6 +1076,7 @@
     form.reset();
     form.id.value = '';
     form.show_caption.value = '0';
+    fillTranslations(form, 'banner', null);
     updateBannerPreview('');
   });
 

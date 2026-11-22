@@ -241,9 +241,41 @@ router.get('/admin/articles/:id', async (req, res, next) => {
        WHERE ak.article_id = ?`,
       [article.id]
     );
-    res.json({ ok: true, article: { ...article, tags: parseJson(article.tags, []), keywords } });
+    res.json({
+      ok: true,
+      article: { ...article, tags: parseJson(article.tags, []), keywords, translations: parseJson(article.translations, null) }
+    });
   } catch (e) { next(e); }
 });
+
+/** Normalisasi objek translations dari form CMS: {en:{...}, ja:{...}} atau null. */
+function parseTranslations(input) {
+  let bag = input;
+  if (typeof bag === 'string') {
+    try { bag = JSON.parse(bag); } catch { return null; }
+  }
+  if (!bag || typeof bag !== 'object' || Array.isArray(bag)) return null;
+  const out = {};
+  for (const lang of ['en', 'ja']) {
+    const src = bag[lang];
+    if (!src || typeof src !== 'object' || Array.isArray(src)) continue;
+    const clean = {};
+    for (const key of Object.keys(src)) {
+      if (!/^[a-z0-9_]{1,40}$/.test(key)) continue;
+      const val = src[key];
+      if (val === undefined || val === null) continue;
+      if (typeof val === 'string') {
+        const t = val.trim();
+        if (t) clean[key] = t.slice(0, 8000);
+      } else if (Array.isArray(val)) {
+        const arr = val.map((x) => String(x).trim()).filter(Boolean).slice(0, 60);
+        if (arr.length) clean[key] = arr;
+      }
+    }
+    if (Object.keys(clean).length) out[lang] = clean;
+  }
+  return Object.keys(out).length ? out : null;
+}
 
 async function saveArticle(req, res, next, articleId = null) {
   try {
@@ -275,30 +307,33 @@ async function saveArticle(req, res, next, articleId = null) {
       seo_title: b.seo_title ? String(b.seo_title).slice(0, 220) : null,
       seo_description: b.seo_description ? String(b.seo_description).slice(0, 320) : null,
       focus_keyword: b.focus_keyword ? String(b.focus_keyword).slice(0, 160) : null,
-      published_at: status === 'published' ? (b.published_at || new Date()) : b.published_at || null
+      published_at: status === 'published' ? (b.published_at || new Date()) : b.published_at || null,
+      translations: b.translations === undefined ? undefined : parseTranslations(b.translations)
     };
+    const transJson = fields.translations ? JSON.stringify(fields.translations) : null;
 
     let id = articleId;
     if (articleId) {
       await query(
         `UPDATE articles SET slug=?, title=?, excerpt=?, content=?, cover_image=?, category=?, tags=?,
-          author=?, status=?, seo_title=?, seo_description=?, focus_keyword=?, published_at=?
+          author=?, status=?, seo_title=?, seo_description=?, focus_keyword=?, published_at=?,
+          translations=COALESCE(?, translations)
          WHERE id = ?`,
         [
           fields.slug, fields.title, fields.excerpt, fields.content, fields.cover_image, fields.category,
           fields.tags, fields.author, fields.status, fields.seo_title, fields.seo_description,
-          fields.focus_keyword, fields.published_at, articleId
+          fields.focus_keyword, fields.published_at, transJson, articleId
         ]
       );
     } else {
       const result = await query(
         `INSERT INTO articles (slug, title, excerpt, content, cover_image, category, tags, author, status,
-           seo_title, seo_description, focus_keyword, published_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           seo_title, seo_description, focus_keyword, published_at, translations)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           fields.slug, fields.title, fields.excerpt, fields.content, fields.cover_image, fields.category,
           fields.tags, fields.author, fields.status, fields.seo_title, fields.seo_description,
-          fields.focus_keyword, fields.published_at
+          fields.focus_keyword, fields.published_at, transJson
         ]
       );
       id = result.insertId;
@@ -337,6 +372,11 @@ router.delete('/admin/articles/:id', async (req, res, next) => {
 /* =========================================================
    KLIEN & MITRA (CRUD)
    ========================================================= */
+const JOB_TYPES = ['lowongan', 'magang', 'pkl'];
+const JOB_WORK_MODES = ['Onsite', 'Hybrid', 'Remote'];
+const JOB_EMPLOYMENTS = ['Full-time', 'Part-time', 'Kontrak'];
+const PARTNER_PROGRAM_CATEGORIES = ['Technology', 'Integrator', 'Referral', 'Reseller', 'OEM', 'Cloud'];
+
 const CLIENT_SEGMENTS = [
   'Retail', 'Manufacturing', 'Financial Services', 'Government', 'Healthcare',
   'Logistics', 'Hospitality', 'Education', 'Telco', 'Energy'
@@ -458,6 +498,177 @@ router.delete('/admin/partners/:id', async (req, res, next) => {
 });
 
 /* =========================================================
+   KARIER: LOWONGAN, MAGANG, PKL (CRUD)
+   ========================================================= */
+
+/** Parse daftar requirement/benefit: array atau "A, B" -> ["A","B"] */
+function parseList(value) {
+  if (Array.isArray(value)) {
+    return value.map((v) => String(v).trim()).filter(Boolean).slice(0, 40);
+  }
+  if (value === undefined || value === null) return [];
+  return String(value)
+    .split('\n')
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .slice(0, 40);
+}
+
+router.get('/admin/jobs', async (_req, res, next) => {
+  try {
+    const jobs = await query(
+      `SELECT id, slug, title, type, department, location, work_mode, employment,
+              description, requirements, benefits, is_active, sort_order, translations
+         FROM job_openings ORDER BY sort_order, id`
+    );
+    res.json({
+      ok: true,
+      jobs: jobs.map((j) => ({
+        ...j,
+        requirements: parseJson(j.requirements, []),
+        benefits: parseJson(j.benefits, []),
+        translations: parseJson(j.translations, null)
+      })),
+      types: JOB_TYPES,
+      workModes: JOB_WORK_MODES,
+      employments: JOB_EMPLOYMENTS
+    });
+  } catch (e) { next(e); }
+});
+
+async function saveJob(req, res, next, jobId = null) {
+  try {
+    const b = req.body || {};
+    const title = String(b.title || '').trim();
+    if (!title) return res.status(422).json({ ok: false, error: 'judul lowongan wajib diisi' });
+
+    const all = await query('SELECT id, slug FROM job_openings');
+    const slug = uniqueSlug(all, b.slug || title, jobId || 0, 'lowongan');
+    const type = JOB_TYPES.includes(b.type) ? b.type : 'lowongan';
+    const workMode = JOB_WORK_MODES.includes(b.work_mode) ? b.work_mode : 'Onsite';
+    const employment = JOB_EMPLOYMENTS.includes(b.employment) ? b.employment : 'Full-time';
+    const department = b.department ? String(b.department).trim().slice(0, 80) : null;
+    const location = b.location ? String(b.location).trim().slice(0, 120) : null;
+    const description = b.description ? String(b.description).trim().slice(0, 4000) : null;
+    const requirements = JSON.stringify(parseList(b.requirements));
+    const benefits = JSON.stringify(parseList(b.benefits));
+    const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
+    const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+    const transJson = (() => {
+      const t = parseTranslations(b.translations);
+      return t ? JSON.stringify(t) : null;
+    })();
+
+    if (jobId) {
+      await query(
+        `UPDATE job_openings SET slug=?, title=?, type=?, department=?, location=?,
+                work_mode=?, employment=?, description=?, requirements=?, benefits=?,
+                sort_order=?, is_active=?, translations=COALESCE(?, translations) WHERE id=?`,
+        [slug, title.slice(0, 160), type, department, location, workMode, employment,
+         description, requirements, benefits, sortOrder, isActive, transJson, jobId]
+      );
+      return res.json({ ok: true, id: jobId, message: 'Lowongan diperbarui' });
+    }
+    const result = await query(
+      `INSERT INTO job_openings
+        (slug, title, type, department, location, work_mode, employment,
+         description, requirements, benefits, sort_order, is_active, translations)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [slug, title.slice(0, 160), type, department, location, workMode, employment,
+       description, requirements, benefits, sortOrder, isActive, transJson]
+    );
+    res.json({ ok: true, id: result.insertId, message: 'Lowongan dibuat' });
+  } catch (e) { next(e); }
+}
+
+router.post('/admin/jobs', (req, res, next) => saveJob(req, res, next, null));
+router.put('/admin/jobs/:id', (req, res, next) => saveJob(req, res, next, Number(req.params.id)));
+
+router.delete('/admin/jobs/:id', async (req, res, next) => {
+  try {
+    await query('DELETE FROM job_openings WHERE id = ?', [req.params.id]);
+    res.json({ ok: true, message: 'Lowongan dihapus' });
+  } catch (e) { next(e); }
+});
+
+/* =========================================================
+   OPEN PARTNER (CRUD)
+   ========================================================= */
+
+router.get('/admin/partner-programs', async (_req, res, next) => {
+  try {
+    const programs = await query(
+      `SELECT id, slug, title, category, description, benefits, requirements,
+              cta_label, cta_url, is_active, sort_order, translations
+         FROM partner_programs ORDER BY sort_order, id`
+    );
+    res.json({
+      ok: true,
+      programs: programs.map((p) => ({
+        ...p,
+        benefits: parseJson(p.benefits, []),
+        requirements: parseJson(p.requirements, []),
+        translations: parseJson(p.translations, null)
+      })),
+      categories: PARTNER_PROGRAM_CATEGORIES
+    });
+  } catch (e) { next(e); }
+});
+
+async function savePartnerProgram(req, res, next, programId = null) {
+  try {
+    const b = req.body || {};
+    const title = String(b.title || '').trim();
+    if (!title) return res.status(422).json({ ok: false, error: 'judul program wajib diisi' });
+
+    const all = await query('SELECT id, slug FROM partner_programs');
+    const slug = uniqueSlug(all, b.slug || title, programId || 0, 'program');
+    const category = PARTNER_PROGRAM_CATEGORIES.includes(b.category) ? b.category : 'Technology';
+    const description = b.description ? String(b.description).trim().slice(0, 4000) : null;
+    const benefits = JSON.stringify(parseList(b.benefits));
+    const requirements = JSON.stringify(parseList(b.requirements));
+    const ctaLabel = b.cta_label ? String(b.cta_label).trim().slice(0, 80) : null;
+    const ctaUrl = b.cta_url ? String(b.cta_url).trim().slice(0, 255) : null;
+    const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
+    const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+    const transJson = (() => {
+      const t = parseTranslations(b.translations);
+      return t ? JSON.stringify(t) : null;
+    })();
+
+    if (programId) {
+      await query(
+        `UPDATE partner_programs SET slug=?, title=?, category=?, description=?,
+                benefits=?, requirements=?, cta_label=?, cta_url=?,
+                sort_order=?, is_active=?, translations=COALESCE(?, translations) WHERE id=?`,
+        [slug, title.slice(0, 160), category, description, benefits, requirements,
+         ctaLabel, ctaUrl, sortOrder, isActive, transJson, programId]
+      );
+      return res.json({ ok: true, id: programId, message: 'Program kemitraan diperbarui' });
+    }
+    const result = await query(
+      `INSERT INTO partner_programs
+        (slug, title, category, description, benefits, requirements,
+         cta_label, cta_url, sort_order, is_active, translations)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [slug, title.slice(0, 160), category, description, benefits, requirements,
+       ctaLabel, ctaUrl, sortOrder, isActive, transJson]
+    );
+    res.json({ ok: true, id: result.insertId, message: 'Program kemitraan dibuat' });
+  } catch (e) { next(e); }
+}
+
+router.post('/admin/partner-programs', (req, res, next) => savePartnerProgram(req, res, next, null));
+router.put('/admin/partner-programs/:id', (req, res, next) => savePartnerProgram(req, res, next, Number(req.params.id)));
+
+router.delete('/admin/partner-programs/:id', async (req, res, next) => {
+  try {
+    await query('DELETE FROM partner_programs WHERE id = ?', [req.params.id]);
+    res.json({ ok: true, message: 'Program kemitraan dihapus' });
+  } catch (e) { next(e); }
+});
+
+/* =========================================================
    BANNER SLIDESHOW (CRUD)
    ========================================================= */
 
@@ -541,6 +752,10 @@ async function saveBanner(req, res, next, bannerId = null) {
     const showCaption = b.show_caption === false || b.show_caption === 0 || b.show_caption === '0' ? 0 : 1;
     const sortOrder = Number.isFinite(Number(b.sort_order)) ? Number(b.sort_order) : 0;
     const isActive = b.is_active === false || b.is_active === 0 || b.is_active === '0' ? 0 : 1;
+    const transJson = (() => {
+      const t = parseTranslations(b.translations);
+      return t ? JSON.stringify(t) : null;
+    })();
 
     const values = [
       slug, title.slice(0, 180), titleHighlight, eyebrow, description,
@@ -554,8 +769,9 @@ async function saveBanner(req, res, next, bannerId = null) {
         `UPDATE banners SET slug=?, title=?, title_highlight=?, eyebrow=?, description=?,
                 cta_label=?, cta_url=?, cta2_label=?, cta2_url=?, accent=?,
                 visual_title=?, visual_label=?, visual_caption=?, chips=?, badges=?,
-                sort_order=?, is_active=?, image_url=?, image_alt=?, show_caption=? WHERE id=?`,
-        [...values, bannerId]
+                sort_order=?, is_active=?, image_url=?, image_alt=?, show_caption=?,
+                translations=COALESCE(?, translations) WHERE id=?`,
+        [...values, transJson, bannerId]
       );
       return res.json({ ok: true, id: bannerId, message: 'Slide banner diperbarui' });
     }
@@ -564,9 +780,9 @@ async function saveBanner(req, res, next, bannerId = null) {
       `INSERT INTO banners
         (slug, title, title_highlight, eyebrow, description, cta_label, cta_url,
          cta2_label, cta2_url, accent, visual_title, visual_label, visual_caption,
-         chips, badges, sort_order, is_active, image_url, image_alt, show_caption)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      values
+         chips, badges, sort_order, is_active, image_url, image_alt, show_caption, translations)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [...values, transJson]
     );
     res.json({ ok: true, id: result.insertId, message: 'Slide banner dibuat' });
   } catch (e) { next(e); }
@@ -907,10 +1123,13 @@ router.get('/cms/articles', async (req, res, next) => {
     const limit = Math.min(Number(req.query.limit) || 6, 50);
     const rows = await query(
       `SELECT slug, title, excerpt, cover_image, category, tags, author, published_at, views,
-              seo_title, seo_description, focus_keyword
+              seo_title, seo_description, focus_keyword, translations
        FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT ${limit}`
     );
-    res.json({ ok: true, articles: rows.map((r) => ({ ...r, tags: parseJson(r.tags, []) })) });
+    res.json({
+      ok: true,
+      articles: rows.map((r) => ({ ...r, tags: parseJson(r.tags, []), translations: parseJson(r.translations, null) }))
+    });
   } catch (e) { next(e); }
 });
 
@@ -918,7 +1137,7 @@ router.get('/cms/articles/:slug', async (req, res, next) => {
   try {
     const rows = await query(
       `SELECT slug, title, excerpt, content, cover_image, category, tags, author, published_at, views,
-              seo_title, seo_description, focus_keyword
+              seo_title, seo_description, focus_keyword, translations
        FROM articles WHERE slug = ? AND status = 'published' LIMIT 1`,
       [req.params.slug]
     );
@@ -926,7 +1145,10 @@ router.get('/cms/articles/:slug', async (req, res, next) => {
     if (!article) return res.status(404).json({ ok: false, error: 'artikel tidak ditemukan' });
     await query('UPDATE articles SET views = views + 1 WHERE slug = ?', [req.params.slug]);
     article.views = Number(article.views || 0) + 1;
-    res.json({ ok: true, article: { ...article, tags: parseJson(article.tags, []) } });
+    res.json({
+      ok: true,
+      article: { ...article, tags: parseJson(article.tags, []), translations: parseJson(article.translations, null) }
+    });
   } catch (e) { next(e); }
 });
 

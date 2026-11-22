@@ -52,6 +52,7 @@
       <button class="nav__item" data-view="keywords"><span><i class="bi bi-key"></i></span> Kata Kunci</button>
       <button class="nav__item" data-view="clients"><span><i class="bi bi-buildings"></i></span> Klien &amp; Mitra</button>
       <button class="nav__item" data-view="banners"><span><i class="bi bi-images"></i></span> Banner Slideshow</button>
+      <button class="nav__item" data-view="careers"><span><i class="bi bi-person-badge"></i></span> Karier &amp; Open Partner</button>
       <button class="nav__item" data-view="analytics"><span><i class="bi bi-bar-chart-line"></i></span> Analitik</button>
       <button class="nav__item" data-view="leads"><span><i class="bi bi-envelope"></i></span> Leads</button>
     </nav>
@@ -194,6 +195,31 @@
           </label>
           <div class="preview" id="serpPreview"></div>
         </div>
+
+        <details class="card trans-block" data-trans-block="article">
+          <summary><i class="bi bi-translate"></i> Terjemahan EN / JA</summary>
+          <p class="muted" style="margin:6px 0 14px">Kosongkan bila ingin memakai teks Indonesia. Terjemahan dipakai saat pengunjung memilih English atau &#26085;&#26412;&#35486;.</p>
+          <label>EN &mdash; Judul <input type="text" name="t_en_title" maxlength="200" /></label>
+          <label>JA &mdash; Judul <input type="text" name="t_ja_title" maxlength="200" /></label>
+          <label>EN &mdash; Ringkasan <textarea name="t_en_excerpt" rows="2"></textarea></label>
+          <label>JA &mdash; Ringkasan <textarea name="t_ja_excerpt" rows="2"></textarea></label>
+          <label>EN &mdash; Isi artikel <textarea name="t_en_content" rows="8"></textarea></label>
+          <label>JA &mdash; Isi artikel <textarea name="t_ja_content" rows="8"></textarea></label>
+          <div class="form-row">
+            <label>EN &mdash; Kategori <input type="text" name="t_en_category" /></label>
+            <label>JA &mdash; Kategori <input type="text" name="t_ja_category" /></label>
+          </div>
+          <div class="form-row">
+            <label>EN &mdash; Tag (koma) <input type="text" name="t_en_tags" /></label>
+            <label>JA &mdash; Tag (koma) <input type="text" name="t_ja_tags" /></label>
+          </div>
+          <div class="form-row">
+            <label>EN &mdash; Meta title <input type="text" name="t_en_seo_title" maxlength="70" /></label>
+            <label>JA &mdash; Meta title <input type="text" name="t_ja_seo_title" maxlength="70" /></label>
+          </div>
+          <label>EN &mdash; Meta description <textarea name="t_en_seo_description" rows="2" maxlength="160"></textarea></label>
+          <label>JA &mdash; Meta description <textarea name="t_ja_seo_description" rows="2" maxlength="160"></textarea></label>
+        </details>
 
         <div class="form-actions">
           <button type="button" class="btn btn--ghost" id="cancelEdit">Batal</button>
@@ -474,6 +500,52 @@
             <span class="muted">Pratinjau gambar:</span><br />
             <img id="bannerPreviewImg" alt="Pratinjau gambar banner" style="max-width:320px;border-radius:10px;border:1px solid var(--line);margin-top:8px" />
           </div>
+          <details class="col-2 trans-block" data-trans-block="banner">
+            <summary><i class="bi bi-translate"></i> Terjemahan EN / JA</summary>
+            <p class="muted" style="margin:6px 0 14px">Kosongkan bila ingin memakai teks Indonesia. Field terjemahan akan dipakai saat pengunjung memilih English atau &#26085;&#26412;&#35486;.</p>
+            <div class="form-row">
+              <label>EN &mdash; Judul <input type="text" name="t_en_title" maxlength="180" /></label>
+              <label>JA &mdash; Judul <input type="text" name="t_ja_title" maxlength="180" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Highlight <input type="text" name="t_en_title_highlight" maxlength="180" /></label>
+              <label>JA &mdash; Highlight <input type="text" name="t_ja_title_highlight" maxlength="180" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Eyebrow <input type="text" name="t_en_eyebrow" maxlength="120" /></label>
+              <label>JA &mdash; Eyebrow <input type="text" name="t_ja_eyebrow" maxlength="120" /></label>
+            </div>
+            <label class="col-2">EN &mdash; Deskripsi <textarea name="t_en_description" rows="3"></textarea></label>
+            <label class="col-2">JA &mdash; Deskripsi <textarea name="t_ja_description" rows="3"></textarea></label>
+            <div class="form-row">
+              <label>EN &mdash; Label CTA <input type="text" name="t_en_cta_label" maxlength="80" /></label>
+              <label>JA &mdash; Label CTA <input type="text" name="t_ja_cta_label" maxlength="80" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Label CTA 2 <input type="text" name="t_en_cta2_label" maxlength="80" /></label>
+              <label>JA &mdash; Label CTA 2 <input type="text" name="t_ja_cta2_label" maxlength="80" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Judul Visual <input type="text" name="t_en_visual_title" maxlength="120" /></label>
+              <label>JA &mdash; Judul Visual <input type="text" name="t_ja_visual_title" maxlength="120" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Label Visual <input type="text" name="t_en_visual_label" maxlength="120" /></label>
+              <label>JA &mdash; Label Visual <input type="text" name="t_ja_visual_label" maxlength="120" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Caption Visual <input type="text" name="t_en_visual_caption" maxlength="180" /></label>
+              <label>JA &mdash; Caption Visual <input type="text" name="t_ja_visual_caption" maxlength="180" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Alt Gambar <input type="text" name="t_en_image_alt" maxlength="180" /></label>
+              <label>JA &mdash; Alt Gambar <input type="text" name="t_ja_image_alt" maxlength="180" /></label>
+            </div>
+            <div class="form-row">
+              <label class="col-2">EN &mdash; Chips (koma) <input type="text" name="t_en_chips" maxlength="500" /></label>
+              <label class="col-2">JA &mdash; Chips (koma) <input type="text" name="t_ja_chips" maxlength="500" /></label>
+            </div>
+          </details>
           <button type="submit" class="btn btn--primary">Simpan</button>
           <button type="button" class="btn btn--ghost" id="resetBanner">Reset</button>
         </form>
@@ -484,6 +556,134 @@
         <div class="table-wrap">
           <table class="table" id="bannerTable">
             <thead><tr><th>Gambar</th><th>Judul</th><th>Slug</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ KARIER & OPEN PARTNER ============ -->
+    <section class="view" id="view-careers" hidden>
+      <header class="view__head">
+        <h1>Karier &amp; Open Partner</h1>
+        <p class="muted">Kelola lowongan kerja, program <strong>Magang</strong>, program <strong>PKL</strong>, dan program <strong>Open Partner</strong> yang tampil di halaman utama. Kolom terjemahan EN / JA diisi pada blok <em>Terjemahan</em> di setiap form.</p>
+      </header>
+
+      <div class="card">
+        <h3>Tambah / Perbarui Lowongan, Magang, atau PKL</h3>
+        <form class="grid-form" id="jobForm">
+          <input type="hidden" name="id" />
+          <label>Judul Posisi <input type="text" name="title" required maxlength="160" placeholder="Backend Engineer" /></label>
+          <label>Jenis
+            <select name="type" id="jobType">
+              <option value="lowongan">Lowongan (Karyawan Tetap)</option>
+              <option value="magang">Magang (Internship)</option>
+              <option value="pkl">PKL (Praktik Kerja Lapangan)</option>
+            </select>
+          </label>
+          <label>Departemen <input type="text" name="department" maxlength="80" placeholder="Engineering" /></label>
+          <label>Lokasi <input type="text" name="location" maxlength="120" placeholder="Jakarta, Indonesia" /></label>
+          <label>Mode Kerja
+            <select name="work_mode" id="jobWorkMode">
+              <option value="Onsite">Onsite</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Remote">Remote</option>
+            </select>
+          </label>
+          <label>Jenis Kerja
+            <select name="employment" id="jobEmployment">
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Kontrak">Kontrak</option>
+            </select>
+          </label>
+          <label class="col-2">Deskripsi <textarea name="description" rows="3" placeholder="Ringkasan singkat posisi"></textarea></label>
+          <label class="col-2">Kualifikasi (satu per baris) <textarea name="requirements" rows="4" placeholder="Minimal 3 tahun pengalaman&#10;Familiar dengan Node.js atau Python"></textarea></label>
+          <label class="col-2">Yang Anda Dapatkan (satu per baris) <textarea name="benefits" rows="4" placeholder="Gaji dan benefit kompetitif&#10;Hybrid: 3 hari kerja di kantor"></textarea></label>
+
+          <details class="col-2 trans-block" data-trans-block="job">
+            <summary><i class="bi bi-translate"></i> Terjemahan EN / JA</summary>
+            <p class="muted" style="margin:6px 0 14px">Kosongkan bila ingin memakai teks Indonesia. Terjemahan dipakai saat pengunjung memilih English atau 日本語.</p>
+            <label>EN &mdash; Judul <input type="text" name="t_en_title" maxlength="160" /></label>
+            <label>JA &mdash; Judul <input type="text" name="t_ja_title" maxlength="160" /></label>
+            <div class="form-row">
+              <label>EN &mdash; Departemen <input type="text" name="t_en_department" maxlength="80" /></label>
+              <label>JA &mdash; Departemen <input type="text" name="t_ja_department" maxlength="80" /></label>
+            </div>
+            <div class="form-row">
+              <label>EN &mdash; Lokasi <input type="text" name="t_en_location" maxlength="120" /></label>
+              <label>JA &mdash; Lokasi <input type="text" name="t_ja_location" maxlength="120" /></label>
+            </div>
+            <label>EN &mdash; Deskripsi <textarea name="t_en_description" rows="3"></textarea></label>
+            <label>JA &mdash; Deskripsi <textarea name="t_ja_description" rows="3"></textarea></label>
+            <label>EN &mdash; Kualifikasi (satu per baris) <textarea name="t_en_requirements" rows="4"></textarea></label>
+            <label>JA &mdash; Kualifikasi (satu per baris) <textarea name="t_ja_requirements" rows="4"></textarea></label>
+            <label>EN &mdash; Yang Anda Dapatkan (satu per baris) <textarea name="t_en_benefits" rows="4"></textarea></label>
+            <label>JA &mdash; Yang Anda Dapatkan (satu per baris) <textarea name="t_ja_benefits" rows="4"></textarea></label>
+          </details>
+
+          <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
+          <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+          <button type="submit" class="btn btn--primary">Simpan</button>
+          <button type="button" class="btn btn--ghost" id="resetJob">Reset</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Lowongan / Magang / PKL</h3>
+        <div class="table-wrap">
+          <table class="table" id="jobTable">
+            <thead><tr><th>Judul</th><th>Jenis</th><th>Departemen</th><th>Lokasi</th><th>Mode</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tambah / Perbarui Program Open Partner</h3>
+        <form class="grid-form" id="partnerProgramForm">
+          <input type="hidden" name="id" />
+          <label>Judul Program <input type="text" name="title" required maxlength="160" placeholder="Open Partner — Technology Vendor" /></label>
+          <label>Kategori
+            <select name="category" id="partnerProgramCategory"></select>
+          </label>
+          <label class="col-2">Deskripsi <textarea name="description" rows="3" placeholder="Ringkasan program kemitraan"></textarea></label>
+          <label class="col-2">Manfaat Mitra (satu per baris) <textarea name="benefits" rows="4" placeholder="Akses ke pipeline proyek enterprise yang aktif"></textarea></label>
+          <label class="col-2">Syarat Kemitraan (satu per baris) <textarea name="requirements" rows="4" placeholder="Produk atau layanan yang sudah matang dan teruji"></textarea></label>
+          <label>Label Tombol <input type="text" name="cta_label" maxlength="80" placeholder="Ajukan Kemitraan" /></label>
+          <label>URL Tombol <input type="text" name="cta_url" maxlength="255" placeholder="#kontak" /></label>
+
+          <details class="col-2 trans-block" data-trans-block="partnerProgram">
+            <summary><i class="bi bi-translate"></i> Terjemahan EN / JA</summary>
+            <p class="muted" style="margin:6px 0 14px">Kosongkan bila ingin memakai teks Indonesia. Terjemahan dipakai saat pengunjung memilih English atau 日本語.</p>
+            <label>EN &mdash; Judul <input type="text" name="t_en_title" maxlength="160" /></label>
+            <label>JA &mdash; Judul <input type="text" name="t_ja_title" maxlength="160" /></label>
+            <div class="form-row">
+              <label>EN &mdash; Kategori <input type="text" name="t_en_category" maxlength="40" /></label>
+              <label>JA &mdash; Kategori <input type="text" name="t_ja_category" maxlength="40" /></label>
+            </div>
+            <label>EN &mdash; Deskripsi <textarea name="t_en_description" rows="3"></textarea></label>
+            <label>JA &mdash; Deskripsi <textarea name="t_ja_description" rows="3"></textarea></label>
+            <label>EN &mdash; Manfaat Mitra (satu per baris) <textarea name="t_en_benefits" rows="4"></textarea></label>
+            <label>JA &mdash; Manfaat Mitra (satu per baris) <textarea name="t_ja_benefits" rows="4"></textarea></label>
+            <label>EN &mdash; Syarat Kemitraan (satu per baris) <textarea name="t_en_requirements" rows="4"></textarea></label>
+            <label>JA &mdash; Syarat Kemitraan (satu per baris) <textarea name="t_ja_requirements" rows="4"></textarea></label>
+            <label>EN &mdash; Label Tombol <input type="text" name="t_en_cta_label" maxlength="80" /></label>
+            <label>JA &mdash; Label Tombol <input type="text" name="t_ja_cta_label" maxlength="80" /></label>
+          </details>
+
+          <label>Urutan <input type="number" name="sort_order" min="0" value="0" /></label>
+          <label>Status <select name="is_active"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></label>
+          <button type="submit" class="btn btn--primary">Simpan</button>
+          <button type="button" class="btn btn--ghost" id="resetPartnerProgram">Reset</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Daftar Program Open Partner</h3>
+        <div class="table-wrap">
+          <table class="table" id="partnerProgramTable">
+            <thead><tr><th>Judul</th><th>Kategori</th><th>Label Tombol</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>

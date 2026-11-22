@@ -37,7 +37,7 @@
 
     <nav class="nav__links" id="navLinks">
       <div class="nav__group" data-submenu>
-        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-solusi">
+        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-solusi" data-i18n-text="Solusi">
           Solusi <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="nav__submenu" id="submenu-solusi">
@@ -48,7 +48,7 @@
       </div>
 
       <div class="nav__group" data-submenu>
-        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-perusahaan">
+        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-perusahaan" data-i18n-text="Perusahaan">
           Perusahaan <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="nav__submenu" id="submenu-perusahaan">
@@ -58,10 +58,44 @@
         </div>
       </div>
 
+      <div class="nav__group" data-submenu>
+        <button class="nav__link nav__link--toggle" type="button" aria-expanded="false" aria-controls="submenu-karier" data-i18n-text="Karier">
+          Karier <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="nav__submenu" id="submenu-karier">
+          <a href="#karier" data-i18n-text="Lowongan Kerja">Lowongan Kerja</a>
+          <a href="#karier" data-i18n-text="Program Magang">Program Magang</a>
+          <a href="#karier" data-i18n-text="Praktik Kerja Lapangan">Praktik Kerja Lapangan</a>
+          <a href="#openpartner" data-i18n-text="Open Partner">Open Partner</a>
+        </div>
+      </div>
+
       <a href="#insight">Insight</a>
       <a href="#proses">Proses</a>
       <a href="#kontak">Kontak</a>
     </nav>
+
+    <div class="lang-switch" data-lang-switch data-i18n-ignore>
+      <button class="lang-switch__toggle" type="button" data-lang-toggle aria-haspopup="true" aria-expanded="false" aria-label="Ganti bahasa">
+        <i class="bi bi-globe2" aria-hidden="true"></i>
+        <span data-lang-current>ID</span>
+        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+      </button>
+      <div class="lang-switch__wrap" data-lang-wrap role="menu" aria-label="Pilih bahasa">
+        <button type="button" role="menuitem" data-lang="id" aria-selected="true">
+          <span class="lang-switch__code">ID</span>
+          <span class="lang-switch__name">Indonesia</span>
+        </button>
+        <button type="button" role="menuitem" data-lang="en" aria-selected="false">
+          <span class="lang-switch__code">EN</span>
+          <span class="lang-switch__name">English</span>
+        </button>
+        <button type="button" role="menuitem" data-lang="ja" aria-selected="false">
+          <span class="lang-switch__code">JA</span>
+          <span class="lang-switch__name">日本語</span>
+        </button>
+      </div>
+    </div>
 
     <a href="#kontak" class="btn btn--primary">Konsultasi Gratis</a>
     <button class="nav__toggle" id="navToggle" aria-label="Buka menu"><i class="bi bi-list"></i></button>
@@ -115,12 +149,12 @@
     <div class="reveal">
       <span class="eyebrow">Tentang Kami</span>
       <h2>Arsitek Transformasi Digital yang Lugas &amp; Terpercaya</h2>
-      <p class="lead">
+      <p class="lead" data-i18n="about.lead">
         <strong>PT. Integration Teknologi Visual</strong> adalah mitra transformasi digital yang
         menyediakan layanan pengembangan software enterprise, digital signage, interactive display,
         dan integrasi sistem terpadu untuk sektor Corporate, Retail, Mall, Manufacturing, hingga Government.
       </p>
-      <p>
+      <p data-i18n="about.body">
         Kami menghadirkan solusi teknologi yang inovatif, stabil, aman, dan <em>scalable</em> guna
         mengoptimalkan operasional bisnis secara real-time — melalui <strong>Pengembangan Software</strong>,
         <strong>Digital Signage / Smart Display</strong>, <strong>Integrasi Sistem</strong>, dan
@@ -164,7 +198,7 @@
 <!-- ============ LAYANAN ============ -->
 <section class="section section--soft" id="layanan">
   <div class="wrap">
-    <div class="center reveal" style="max-width:760px;margin:0 auto 52px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Layanan Utama</span>
       <h2>Empat Pilar Solusi Terpadu</h2>
       <p class="lead">Dari perangkat display di lapangan hingga platform enterprise di pusat data — satu mitra, satu pola arsitektur.</p>
@@ -229,7 +263,7 @@
 <!-- ============ PRODUK / SOLUSI ============ -->
 <section class="section" id="produk">
   <div class="wrap">
-    <div class="center reveal" style="max-width:760px;margin:0 auto 52px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Portfolio Solusi</span>
       <h2>Solusi yang Dikustomisasi pada Level Enterprise</h2>
       <p class="lead">Setiap lini produk dapat dikonfigurasi, diintegrasikan, dan diskalakan mengikuti kompleksitas organisasi Anda.</p>
@@ -308,7 +342,7 @@
 <!-- ============ SEKTOR ============ -->
 <section class="section section--soft" id="sektor">
   <div class="wrap">
-    <div class="center reveal" style="max-width:760px;margin:0 auto 52px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Target Pelanggan</span>
       <h2>Melayani Skala Enterprise hingga UMKM</h2>
       <p class="lead">Selain korporasi besar dan instansi publik, solusi sistem kami juga melayani skala UMKM / bisnis lokal hingga sektor spesifik.</p>
@@ -361,7 +395,7 @@
 <!-- ============ KLIEN ============ -->
 <section class="section" id="klien">
   <div class="wrap">
-    <div class="center reveal" style="margin-bottom:34px">
+    <div class="center reveal section-head section-head--tight">
       <span class="eyebrow">Klien</span>
       <h2 class="visually-hidden">Klien per Industri</h2>
     </div>
@@ -389,7 +423,7 @@
 <!-- ============ MITRA ============ -->
 <section class="section section--soft" id="mitra">
   <div class="wrap">
-    <div class="center reveal" style="margin-bottom:34px">
+    <div class="center reveal section-head section-head--tight">
       <span class="eyebrow">Mitra</span>
       <h2 class="visually-hidden">Mitra &amp; Ekosistem Teknologi</h2>
     </div>
@@ -414,7 +448,7 @@
 <!-- ============ INSIGHT / ARTIKEL ============ -->
 <section class="section section--soft" id="insight">
   <div class="wrap">
-    <div class="center reveal" style="max-width:760px;margin:0 auto 52px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Insight</span>
       <h2>Artikel &amp; Wawasan Teknologi Terakhir</h2>
       <p class="lead">Wawasan praktis dari tim kami mengenai transformasi digital enterprise, integrasi sistem, dan pengelolaan infrastruktur.</p>
@@ -428,7 +462,7 @@
 <!-- ============ PROSES ============ -->
 <section class="section section--dark" id="proses">
   <div class="wrap">
-    <div class="center reveal" style="max-width:760px;margin:0 auto 52px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Cara Kerja Kami</span>
       <h2>Metodologi yang Transparan &amp; Bertahap</h2>
       <p class="lead">Pendekatan konsultatif sebelum eksekusi teknis, dengan milestone yang jelas dan investasi yang dapat diprediksi.</p>
@@ -485,7 +519,7 @@
 <!-- ============ GARANSI ============ -->
 <section class="section" id="garansi">
   <div class="wrap">
-    <div class="center reveal" style="max-width:720px;margin:0 auto 48px">
+    <div class="center reveal section-head">
       <span class="eyebrow">Komitmen Kami</span>
       <h2>Garansi &amp; Dukungan Pasca-Proyek</h2>
       <p class="lead">Setiap solusi kami didukung garansi resmi untuk software maupun hardware, dengan layanan managed IT berkelanjutan.</p>
@@ -503,6 +537,42 @@
         <b>24/7</b>
         <span>Monitoring &amp; respons insiden untuk layanan cloud dan managed IT.</span>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KARIER: LOWONGAN / MAGANG / PKL ============ -->
+<section class="section" id="karier">
+  <div class="wrap">
+    <div class="center reveal section-head">
+      <span class="eyebrow">Karier</span>
+      <h2>Bangun Karier Bersama Kami</h2>
+      <p class="lead">Lowongan posisi, program magang, dan Praktik Kerja Lapangan untuk talenta yang ingin berkarya di lingkungan teknologi enterprise.</p>
+    </div>
+
+    <div class="tabs reveal" role="tablist" aria-label="Kategori lowongan" data-job-tabs>
+      <button class="tabs__btn is-active" type="button" role="tab" aria-selected="true" data-job-filter="lowongan">Lowongan</button>
+      <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-job-filter="magang">Magang</button>
+      <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-job-filter="pkl">PKL</button>
+    </div>
+
+    <div class="grid grid--2" id="jobs-grid">
+      <p class="muted" style="grid-column:1/-1">Memuat lowongan…</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPEN PARTNER ============ -->
+<section class="section section--soft" id="openpartner">
+  <div class="wrap">
+    <div class="center reveal section-head">
+      <span class="eyebrow">Open Partner</span>
+      <h2>Jadilah Mitra Teknologi Kami</h2>
+      <p class="lead">Kami membuka program kemitraan bagi vendor, integrator, dan referral partner untuk tumbuh bersama di pasar enterprise Indonesia.</p>
+    </div>
+
+    <div class="grid grid--3" id="partner-programs-grid">
+      <p class="muted" style="grid-column:1/-1">Memuat program kemitraan…</p>
     </div>
   </div>
 </section>
@@ -551,7 +621,7 @@
 
     <div class="cta-box reveal">
       <h3>Konsultasi Gratis &amp; Penilaian Kebutuhan</h3>
-      <p>
+      <p data-i18n="cta.desc">
         Kami percaya keputusan investasi teknologi yang baik dimulai dari pemahaman yang tepat.
         Sesi konsultasi awal mencakup identifikasi kebutuhan, referensi solusi, dan roadmap implementasi —
         <strong>tanpa biaya dan tanpa kewajiban.</strong>
@@ -702,12 +772,14 @@
     </div>
 
     <div class="footer__bottom">
-      <span>&copy; <span id="year">2026</span> PT. Integration Teknologi Visual. Seluruh hak cipta dilindungi.</span>
+      <span>&copy; <span id="year">2026</span> <span data-brand="company">PT. Integration Teknologi Visual</span>. <span data-i18n-text="Seluruh hak cipta dilindungi.">Seluruh hak cipta dilindungi.</span></span>
       <span>Profesional &middot; Edukatif &middot; Konsultatif &middot; Solutif</span>
     </div>
   </div>
 </footer>
 
+<script src="/i18n-data.js"></script>
+<script src="/i18n.js"></script>
 <script src="script.js"></script>
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();

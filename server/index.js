@@ -33,7 +33,7 @@ app.get('/api/health', async (_req, res) => {
 app.get('/api/services', async (_req, res, next) => {
   try {
     const rows = await query(
-      'SELECT slug, title, icon, short_desc, features FROM services WHERE is_active = 1 ORDER BY sort_order, id'
+      'SELECT slug, title, icon, short_desc, features, translations FROM services WHERE is_active = 1 ORDER BY sort_order, id'
     );
     res.json(
       rows.map((r) => ({
@@ -41,7 +41,8 @@ app.get('/api/services', async (_req, res, next) => {
         title: r.title,
         icon: r.icon,
         description: r.short_desc,
-        features: parseJson(r.features)
+        features: parseJson(r.features),
+        translations: parseJson(r.translations, null)
       }))
     );
   } catch (e) { next(e); }
@@ -50,7 +51,7 @@ app.get('/api/services', async (_req, res, next) => {
 app.get('/api/products', async (_req, res, next) => {
   try {
     const rows = await query(
-      'SELECT slug, title, description, features, sector FROM products WHERE is_active = 1 ORDER BY sort_order, id'
+      'SELECT slug, title, description, features, sector, translations FROM products WHERE is_active = 1 ORDER BY sort_order, id'
     );
     res.json(
       rows.map((r) => ({
@@ -58,7 +59,8 @@ app.get('/api/products', async (_req, res, next) => {
         title: r.title,
         description: r.description,
         sector: r.sector,
-        features: parseJson(r.features)
+        features: parseJson(r.features),
+        translations: parseJson(r.translations, null)
       }))
     );
   } catch (e) { next(e); }
@@ -67,9 +69,9 @@ app.get('/api/products', async (_req, res, next) => {
 app.get('/api/sectors', async (_req, res, next) => {
   try {
     const rows = await query(
-      'SELECT slug, title, description, tags FROM sectors WHERE is_active = 1 ORDER BY sort_order, id'
+      'SELECT slug, title, description, tags, translations FROM sectors WHERE is_active = 1 ORDER BY sort_order, id'
     );
-    res.json(rows);
+    res.json(rows.map((r) => ({ ...r, translations: parseJson(r.translations, null) })));
   } catch (e) { next(e); }
 });
 
@@ -87,6 +89,54 @@ app.get('/api/clients', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+/* Lowongan kerja, program magang & PKL */
+app.get('/api/jobs', async (req, res, next) => {
+  try {
+    const type = String(req.query.type || '').trim();
+    const where = ['is_active = 1'];
+    const args = [];
+    if (['lowongan', 'magang', 'pkl'].includes(type)) {
+      where.push('type = ?');
+      args.push(type);
+    }
+    const rows = await query(
+      `SELECT slug, title, type, department, location, work_mode, employment,
+              description, requirements, benefits, translations
+         FROM job_openings WHERE ${where.join(' AND ')} ORDER BY sort_order, id`,
+      args
+    );
+    res.json({
+      ok: true,
+      jobs: rows.map((r) => ({
+        ...r,
+        requirements: parseJson(r.requirements, []),
+        benefits: parseJson(r.benefits, []),
+        translations: parseJson(r.translations, null)
+      }))
+    });
+  } catch (e) { next(e); }
+});
+
+/* Program Open Partner (kemitraan terbuka) */
+app.get('/api/partner-programs', async (_req, res, next) => {
+  try {
+    const rows = await query(
+      `SELECT slug, title, category, description, benefits, requirements,
+              cta_label, cta_url, translations
+         FROM partner_programs WHERE is_active = 1 ORDER BY sort_order, id`
+    );
+    res.json({
+      ok: true,
+      programs: rows.map((r) => ({
+        ...r,
+        benefits: parseJson(r.benefits, []),
+        requirements: parseJson(r.requirements, []),
+        translations: parseJson(r.translations, null)
+      }))
+    });
+  } catch (e) { next(e); }
+});
+
 /* Slide banner slideshow hero */
 app.get('/api/banners', async (_req, res, next) => {
   try {
@@ -94,7 +144,7 @@ app.get('/api/banners', async (_req, res, next) => {
       `SELECT id, slug, title, title_highlight, eyebrow, description,
               cta_label, cta_url, cta2_label, cta2_url, accent,
                 visual_title, visual_label, visual_caption, chips, badges, sort_order,
-                image_url, image_alt, show_caption
+                image_url, image_alt, show_caption, translations
        FROM banners WHERE is_active = 1 ORDER BY sort_order, id`
     );
     res.json({ slides: rows.map(mapBanner) });
@@ -175,7 +225,8 @@ app.get('/api/articles', async (req, res, next) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 6, 50);
     const rows = await query(
-      `SELECT slug, title, excerpt, cover_image, category, tags, author, published_at, views
+      `SELECT slug, title, excerpt, cover_image, category, tags, author, published_at,
+              views, translations
        FROM articles WHERE status = 'published' ORDER BY published_at DESC LIMIT ${limit}`
     );
     res.json(rows.map((r) => ({ ...r, tags: parseJson(r.tags, []) })));
@@ -185,7 +236,8 @@ app.get('/api/articles', async (req, res, next) => {
 app.get('/api/articles/:slug', async (req, res, next) => {
   try {
     const rows = await query(
-      `SELECT slug, title, excerpt, content, cover_image, category, tags, author, published_at, views
+      `SELECT slug, title, excerpt, content, cover_image, category, tags, author,
+              published_at, views, translations
        FROM articles WHERE slug = ? AND status = 'published' LIMIT 1`,
       [req.params.slug]
     );

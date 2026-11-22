@@ -1,16 +1,58 @@
 :root {
+  /* ---------- Core palette ---------- */
   --navy: #0b1f3a;
   --navy-2: #12305a;
   --blue: #1f6feb;
   --cyan: #00b8d9;
+  --violet: #7c4dff;
+  --amber: #f0932b;
   --ink: #16233a;
   --muted: #5b6b83;
   --line: #e3e9f2;
   --bg-soft: #f5f8fc;
   --white: #ffffff;
+
+  /* ---------- Gradient system ---------- */
+  --grad-brand: linear-gradient(135deg, #0b1f3a 0%, #1f6feb 52%, #00b8d9 100%);
+  --grad-brand-soft: linear-gradient(135deg, rgba(31, 111, 235, .16), rgba(0, 184, 217, .16));
+  --grad-text: linear-gradient(100deg, #1f6feb 0%, #00b8d9 52%, #7c4dff 100%);
+  --grad-text-dark: linear-gradient(100deg, #ffffff 0%, #bfe9f5 52%, #7fe3f5 100%);
+  --grad-surface: linear-gradient(180deg, #ffffff 0%, #fafcfe 100%);
+  --grad-hero: radial-gradient(1100px 620px at 88% 4%, rgba(0, 184, 217, .30), transparent 58%),
+               radial-gradient(900px 560px at 4% 98%, rgba(124, 77, 255, .26), transparent 62%),
+               linear-gradient(155deg, #071527 0%, #0e2749 46%, #16437e 100%);
+  --grad-dark: radial-gradient(900px 520px at 10% 0%, rgba(31, 111, 235, .32), transparent 60%),
+               radial-gradient(760px 480px at 94% 100%, rgba(0, 184, 217, .22), transparent 62%),
+               linear-gradient(165deg, #061223 0%, #0b1f3a 52%, #102c56 100%);
+  --grad-cta: radial-gradient(620px 340px at 90% 6%, rgba(0, 184, 217, .30), transparent 62%),
+              radial-gradient(520px 300px at 6% 96%, rgba(124, 77, 255, .24), transparent 62%),
+              linear-gradient(140deg, #0b1f3a 0%, #16437e 48%, #0d5f86 100%);
+  --grad-footer: radial-gradient(820px 420px at 12% 0%, rgba(31, 111, 235, .20), transparent 60%),
+                 radial-gradient(700px 400px at 92% 100%, rgba(0, 184, 217, .15), transparent 62%),
+                 linear-gradient(170deg, #061223 0%, #071527 52%, #0b1f3a 100%);
+
+  /* ---------- Shape & depth ---------- */
   --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --shadow: 0 10px 30px rgba(11, 31, 58, .08);
   --shadow-lg: 0 20px 50px rgba(11, 31, 58, .14);
+  --shadow-soft: 0 6px 18px rgba(11, 31, 58, .06);
+  --shadow-blue: 0 14px 34px rgba(31, 111, 235, .24);
+  --shadow-blue-lg: 0 20px 44px rgba(31, 111, 235, .30);
+
+  /* ---------- Spacing scale ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 84px;
+
   --max: 1180px;
 }
 
@@ -155,6 +197,47 @@ p { margin: 0 0 1rem; }
 }
 .nav__submenu a:hover { background: var(--bg-soft); color: var(--blue); }
 
+/* ---------- Language switcher ---------- */
+.lang-switch { position: relative; }
+.lang-switch__toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid var(--line); border-radius: 10px;
+  padding: 7px 10px; cursor: pointer; font-family: inherit;
+  font-size: .82rem; font-weight: 700; letter-spacing: .04em; color: var(--muted);
+  transition: border-color .15s, color .15s;
+}
+.lang-switch__toggle:hover { color: var(--blue); border-color: var(--blue); }
+.lang-switch__toggle i { line-height: 1; }
+.lang-switch__toggle i:first-child { font-size: .95rem; }
+.lang-switch__toggle i:last-child { font-size: .58rem; transition: transform .2s ease; }
+.lang-switch.is-open .lang-switch__toggle i:last-child { transform: rotate(180deg); }
+
+.lang-switch__wrap {
+  position: absolute; top: calc(100% + 12px); right: 0;
+  min-width: 172px; padding: 8px;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; gap: 2px;
+  opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+  z-index: 60;
+}
+.lang-switch__wrap::before { content: ''; position: absolute; top: -12px; left: 0; right: 0; height: 12px; }
+.lang-switch.is-open .lang-switch__wrap { opacity: 1; visibility: visible; transform: translateY(0); }
+.lang-switch__wrap button {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px; border: 0; border-radius: 10px;
+  background: none; cursor: pointer; text-align: left; font-family: inherit;
+  font-size: .87rem; color: var(--muted); transition: background .15s, color .15s;
+}
+.lang-switch__wrap button:hover { background: var(--bg-soft); color: var(--blue); }
+.lang-switch__wrap button[aria-selected="true"] { background: var(--bg-soft); color: var(--blue); font-weight: 600; }
+.lang-switch__code { font-weight: 700; letter-spacing: .04em; font-size: .78rem; min-width: 20px; }
+.lang-switch__name { flex: 1; }
+.lang-switch__wrap button[aria-selected="true"] .lang-switch__name::after {
+  content: '\2713'; margin-left: 8px; font-weight: 700;
+}
+
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
@@ -177,6 +260,13 @@ p { margin: 0 0 1rem; }
 .hero__grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.15fr .85fr; gap: 60px; align-items: center; }
 .hero h1 { color: #fff; }
 .hero h1 span { color: var(--cyan); }
+/* .hero h1 (spesifisitas 0,1,1) mengalahkan .banner__title (0,1,0),
+   jadi isi teks harus dipaksa transparan agar gradasi tetap terlihat. */
+.hero .banner__title,
+.hero .banner__title span {
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 .hero__lead { font-size: 1.08rem; color: #c3d4ec; max-width: 620px; }
 .hero__actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
 
@@ -363,6 +453,9 @@ p { margin: 0 0 1rem; }
   .nav__submenu a { padding: 10px 0; border-bottom: 1px solid var(--bg-soft); }
   .nav__toggle { display: block; }
   .nav .btn { display: none; }
+  .lang-switch { order: 1; }
+  .lang-switch__wrap { right: -8px; }
+  .nav__toggle { order: 2; }
 }
 
 @media (max-width: 640px) {
@@ -586,7 +679,9 @@ p { margin: 0 0 1rem; }
 .banner__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(6, 16, 32, .35) 0%, rgba(6, 16, 32, .08) 38%, rgba(6, 16, 32, .55) 100%);
+  background:
+    linear-gradient(180deg, rgba(6, 16, 32, .48) 0%, rgba(6, 16, 32, .10) 30%, rgba(6, 16, 32, .82) 100%),
+    linear-gradient(90deg, rgba(6, 16, 32, .68) 0%, rgba(6, 16, 32, .28) 58%, transparent 100%);
   pointer-events: none;
 }
 .banner__caption {
@@ -596,12 +691,28 @@ p { margin: 0 0 1rem; }
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-start;
-  min-height: clamp(420px, 62vh, 640px);
+  min-height: clamp(460px, 68vh, 700px);
   padding: 96px 0 118px;
   text-align: left;
+  width: 100%;
 }
-.banner__caption .banner__title { text-shadow: 0 2px 22px rgba(0, 0, 0, .55); }
-.banner__caption .hero__lead { text-shadow: 0 1px 14px rgba(0, 0, 0, .5); }
+.banner__caption > * { max-width: 720px; }
+.banner__caption .eyebrow {
+  background: rgba(0, 184, 217, .18);
+  border-color: rgba(0, 184, 217, .38);
+  color: #a8ecf8;
+  backdrop-filter: blur(6px);
+}
+.banner__caption .banner__title {
+  text-shadow: 0 2px 26px rgba(0, 0, 0, .62);
+  font-size: clamp(2.1rem, 5.2vw, 3.6rem);
+}
+.banner__caption .hero__lead {
+  text-shadow: 0 1px 16px rgba(0, 0, 0, .55);
+  color: #d3e2f4;
+  font-size: 1.06rem;
+  max-width: 620px;
+}
 
 .visually-hidden {
   position: absolute !important;
@@ -669,19 +780,15 @@ p { margin: 0 0 1rem; }
 .grid--5 { grid-template-columns: repeat(5, 1fr); }
 .logo-grid { gap: 18px; }
 .logo-card {
-  background: #fff;
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 0;
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 10px;
   text-align: center;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  transition: transform .2s ease;
 }
-.logo-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow);
-  border-color: rgba(31, 111, 235, .35);
-}
+.logo-card:hover { transform: translateY(-3px); }
 .logo-card__mark {
   width: 58px; height: 58px;
   border-radius: 16px;
@@ -697,30 +804,40 @@ p { margin: 0 0 1rem; }
   height: auto;
   aspect-ratio: 320 / 200;
   object-fit: contain;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 8px;
-  transition: transform .2s ease;
+  background: #fff;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(11, 31, 58, .07), 0 1px 3px rgba(11, 31, 58, .05);
+  transition: transform .25s ease, filter .25s ease, box-shadow .25s ease;
 }
-.logo-card:hover .logo-card__logo { transform: scale(1.03); }
+.logo-card:hover .logo-card__logo {
+  transform: scale(1.04);
+  box-shadow: 0 10px 26px rgba(11, 31, 58, .10);
+}
 .partner-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 16px;
+  padding: 10px;
+  transition: transform .2s ease;
 }
+.partner-card:hover { transform: translateY(-3px); }
 .partner-card__logo {
   width: 100%;
   max-width: 170px;
   height: auto;
   aspect-ratio: 320 / 200;
   object-fit: contain;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 8px;
-  transition: transform .2s ease;
+  background: #fff;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(11, 31, 58, .07), 0 1px 3px rgba(11, 31, 58, .05);
+  transition: transform .25s ease, filter .25s ease, box-shadow .25s ease;
 }
-.partner-card:hover .partner-card__logo { transform: scale(1.03); }
+.partner-card:hover .partner-card__logo {
+  transform: scale(1.04);
+  box-shadow: 0 10px 26px rgba(11, 31, 58, .10);
+}
 
 @media (max-width: 1100px) {
   .grid--5 { grid-template-columns: repeat(3, 1fr); }
@@ -735,4 +852,673 @@ p { margin: 0 0 1rem; }
   .banner__nav--prev { left: 8px; }
   .banner__nav--next { right: 8px; }
   .banner__dots { bottom: 28px; }
+}
+
+
+/* =========================================================
+   VISUAL SYSTEM — gradasi, kedalaman visual, dan kerapian
+   ========================================================= */
+
+/* ---------- Helper: teks gradien ---------- */
+.grad-text,
+.section:not(.section--dark) h2,
+.section:not(.section--dark) h3,
+.banner__title span {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.section--dark h2, .section--dark h3 { color: #fff; }
+.section--dark .banner__title span { background: var(--grad-text-dark); }
+
+/* ---------- Latar halaman: mesh gradien halus ---------- */
+body {
+  background:
+    radial-gradient(760px 420px at 92% 0%, rgba(0, 184, 217, .05), transparent 60%),
+    radial-gradient(680px 420px at 0% 26%, rgba(31, 111, 235, .045), transparent 62%),
+    var(--white);
+  background-attachment: fixed;
+}
+
+/* ---------- Ritme section (rapi) ---------- */
+.section { padding: clamp(64px, 7vw, 104px) 0; }
+.section--soft {
+  background:
+    radial-gradient(760px 440px at 10% 0%, rgba(31, 111, 235, .07), transparent 60%),
+    radial-gradient(640px 420px at 92% 100%, rgba(0, 184, 217, .07), transparent 62%),
+    var(--bg-soft);
+}
+.section--dark {
+  background: var(--grad-dark);
+  color: #dbe6f5;
+  position: relative;
+  overflow: hidden;
+}
+.section--dark::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at 50% 30%, #000 10%, transparent 80%);
+  pointer-events: none;
+}
+.section--dark > .wrap { position: relative; z-index: 2; }
+
+/* Kepala section: judul gradien + pembatas dekoratif */
+.section-head {
+  max-width: 780px;
+  margin: 0 auto clamp(38px, 4.4vw, 62px);
+}
+.section-head h2 { margin-bottom: .45em; }
+.section-head .lead { margin: 0; }
+.section-head.center::after {
+  content: "";
+  display: block;
+  width: 76px; height: 4px;
+  margin: 20px auto 0;
+  border-radius: 999px;
+  background: var(--grad-brand);
+}
+.lead { max-width: 64ch; }
+.section-head.center .lead { margin-inline: auto; }
+.split .lead, .contact-grid .lead { max-width: 56ch; }
+
+/* ---------- Eyebrow: pil gradien ---------- */
+.eyebrow {
+  background: var(--grad-brand-soft);
+  border: 1px solid rgba(31, 111, 235, .18);
+  color: var(--blue);
+  box-shadow: 0 4px 14px rgba(31, 111, 235, .10);
+}
+.section--dark .eyebrow {
+  background: rgba(0, 184, 217, .14);
+  border-color: rgba(0, 184, 217, .32);
+  color: #9fe3f4;
+  box-shadow: none;
+}
+
+/* ---------- Tombol ---------- */
+.btn {
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+.btn--primary {
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: var(--shadow-blue);
+}
+.btn--primary:hover {
+  background: var(--grad-brand);
+  box-shadow: var(--shadow-blue-lg);
+}
+.btn--outline {
+  background: var(--grad-surface);
+  box-shadow: var(--shadow-soft);
+}
+.btn--outline:hover {
+  border-color: transparent;
+  color: var(--blue);
+  box-shadow: var(--shadow-blue);
+}
+.btn--ghost { backdrop-filter: blur(6px); }
+.btn--ghost:hover { background: rgba(255, 255, 255, .16); }
+
+/* ---------- Header ---------- */
+.header {
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 6px 24px rgba(11, 31, 58, .05);
+}
+.brand__mark {
+  box-shadow: 0 8px 20px rgba(31, 111, 235, .28);
+}
+.nav__links a {
+  position: relative;
+  padding-bottom: 2px;
+}
+.nav__links a::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2px; border-radius: 2px;
+  background: var(--grad-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .22s ease;
+}
+.nav__links a:hover::after { transform: scaleX(1); }
+.nav__submenu {
+  background: var(--grad-surface);
+  backdrop-filter: blur(14px);
+  border-color: rgba(31, 111, 235, .14);
+}
+.nav__submenu a:hover {
+  background: var(--grad-brand-soft);
+  color: var(--blue);
+}
+.lang-switch__wrap {
+  background: var(--grad-surface);
+  backdrop-filter: blur(14px);
+  border-color: rgba(31, 111, 235, .14);
+}
+.lang-switch__wrap button:hover { background: var(--grad-brand-soft); }
+.lang-switch__wrap button[aria-selected="true"] {
+  background: var(--grad-brand-soft);
+  color: var(--blue);
+}
+.lang-switch__toggle {
+  background: var(--grad-surface);
+  border-color: rgba(31, 111, 235, .16);
+}
+.lang-switch__toggle:hover { border-color: var(--blue); background: #fff; }
+
+/* ---------- Hero / Banner ---------- */
+.hero { background: var(--grad-hero); }
+.hero::after { opacity: .85; }
+.banner__slide {
+  background:
+    radial-gradient(860px 540px at 86% 10%, var(--slide-accent, rgba(0, 184, 217, .22)), transparent 60%),
+    radial-gradient(720px 460px at 2% 94%, rgba(124, 77, 255, .20), transparent 62%);
+}
+.banner__slide::before { background: none; }
+.banner__title {
+  background: linear-gradient(180deg, #ffffff 0%, #cfe1f8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.banner__title span { background: var(--grad-text); }
+.hero__lead { color: #cadcf2; }
+.hero__badges { border-top-color: rgba(255, 255, 255, .16); }
+.hero__badges b {
+  background: var(--grad-text-dark);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.card-visual {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .04));
+  border-color: rgba(255, 255, 255, .20);
+  box-shadow: 0 24px 60px rgba(3, 10, 22, .45);
+}
+.screen {
+  background: linear-gradient(140deg, #08182f, #16437e 52%, #0b6a93);
+  box-shadow: inset 0 0 40px rgba(0, 184, 217, .14);
+}
+.chip {
+  background: linear-gradient(135deg, rgba(0, 184, 217, .20), rgba(31, 111, 235, .20));
+  border-color: rgba(0, 184, 217, .34);
+}
+.banner__nav {
+  background: rgba(8, 22, 43, .38);
+  border-color: rgba(255, 255, 255, .26);
+}
+.banner__nav:hover {
+  background: var(--grad-brand);
+  border-color: transparent;
+  box-shadow: var(--shadow-blue);
+}
+.banner__dot::after { background: var(--grad-brand); }
+
+/* ---------- Kartu ---------- */
+.card {
+  position: relative;
+  overflow: hidden;
+  background: var(--grad-surface);
+  border-color: rgba(31, 111, 235, .12);
+  box-shadow: var(--shadow-soft);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--grad-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .3s ease;
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(31, 111, 235, .30);
+}
+.card:hover::before { transform: scaleX(1); }
+
+/* Ikon kartu: warna gradien bergantian agar tampilan lebih hidup */
+.card__icon {
+  background: var(--grad-brand);
+  box-shadow: 0 10px 22px rgba(31, 111, 235, .26);
+}
+.card__icon i { color: #fff; }
+.grid--4 .card:nth-child(4n + 1) .card__icon { background: linear-gradient(135deg, #1f6feb, #00b8d9); }
+.grid--4 .card:nth-child(4n + 2) .card__icon { background: linear-gradient(135deg, #7c4dff, #1f6feb); }
+.grid--4 .card:nth-child(4n + 3) .card__icon { background: linear-gradient(135deg, #00b8d9, #0ea5e9); }
+.grid--4 .card:nth-child(4n + 4) .card__icon { background: linear-gradient(135deg, #f0932b, #f97316); }
+.grid--3 .card:nth-child(3n + 1) .card__icon { background: linear-gradient(135deg, #1f6feb, #00b8d9); }
+.grid--3 .card:nth-child(3n + 2) .card__icon { background: linear-gradient(135deg, #7c4dff, #1f6feb); }
+.grid--3 .card:nth-child(3n + 3) .card__icon { background: linear-gradient(135deg, #00b8d9, #0ea5e9); }
+.card__list li::before {
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, .10);
+}
+
+/* ---------- Split & statistik ---------- */
+.stat {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .04));
+  border-color: rgba(255, 255, 255, .18);
+  backdrop-filter: blur(8px);
+  transition: transform .2s ease, border-color .2s ease;
+}
+.stat:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 184, 217, .45);
+}
+.stat b {
+  background: var(--grad-text-dark);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ---------- Langkah proses ---------- */
+.step {
+  position: relative;
+  background: var(--grad-surface);
+  border-color: rgba(31, 111, 235, .12);
+  box-shadow: var(--shadow-soft);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.step:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: rgba(31, 111, 235, .28);
+}
+.step::before {
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(31, 111, 235, .28);
+}
+
+/* ---------- Segmen (border atas gradien) ---------- */
+.segment {
+  position: relative;
+  border: 1px solid rgba(31, 111, 235, .12);
+  border-top: 0;
+  padding-top: 30px;
+  background: var(--grad-surface);
+  box-shadow: var(--shadow-soft);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.segment::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--grad-brand);
+}
+.segment:nth-child(2)::before { background: linear-gradient(90deg, #00b8d9, #0ea5e9); }
+.segment:nth-child(3)::before { background: linear-gradient(90deg, #7c4dff, #1f6feb); }
+.segment:nth-child(4)::before { background: linear-gradient(90deg, #f0932b, #f97316); }
+.segment:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.segment small { color: var(--blue); }
+
+/* ---------- Garansi (glass di latar gelap) ---------- */
+.g-item {
+  background: linear-gradient(160deg, rgba(255, 255, 255, .11), rgba(255, 255, 255, .035));
+  border-color: rgba(255, 255, 255, .18);
+  backdrop-filter: blur(10px);
+  transition: transform .22s ease, border-color .22s ease, background .22s ease;
+}
+.g-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 184, 217, .45);
+  background: linear-gradient(160deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05));
+}
+.g-item b {
+  background: linear-gradient(100deg, #00b8d9, #7fe3f5);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ---------- Kontak ---------- */
+.info-list .ic {
+  background: var(--grad-brand-soft);
+  border: 1px solid rgba(31, 111, 235, .14);
+}
+.info-list li { transition: padding-left .2s ease; }
+.info-list li:hover { padding-left: 6px; }
+.info-list .ic i { color: var(--blue); }
+
+.cta-box {
+  position: relative;
+  overflow: hidden;
+  background: var(--grad-cta);
+  border: 1px solid rgba(255, 255, 255, .14);
+  box-shadow: 0 26px 60px rgba(11, 31, 58, .32);
+}
+.cta-box::after {
+  content: "";
+  position: absolute; right: -70px; bottom: -90px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 184, 217, .30), transparent 68%);
+  pointer-events: none;
+}
+.cta-box > * { position: relative; z-index: 2; }
+.cta-box h3 { color: #fff; }
+
+/* ---------- Logo klien & mitra ---------- */
+/* Klien & mitra: tanpa kartu — logo langsung di atas latar section. */
+/* Klien & mitra: tanpa kartu — logo langsung di atas latar section. */
+.logo-card, .partner-card {
+  position: relative;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.logo-card__logo, .partner-card__logo {
+  filter: grayscale(.30) opacity(.85);
+  transition: filter .28s ease, transform .28s ease, box-shadow .28s ease;
+}
+.logo-card:hover .logo-card__logo,
+.partner-card:hover .partner-card__logo {
+  filter: grayscale(0) opacity(1);
+  transform: scale(1.04);
+  box-shadow: 0 10px 26px rgba(11, 31, 58, .10);
+}
+
+/* ---------- Footer ---------- */
+.footer { background: var(--grad-footer); }
+.footer__top { border-bottom-color: rgba(255, 255, 255, .10); }
+.footer ul a { transition: color .18s ease, padding-left .18s ease; }
+.footer ul a:hover { color: var(--cyan); padding-left: 4px; }
+.footer h4 {
+  background: linear-gradient(180deg, #ffffff, #cfe0f5);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ---------- Reveal & motion ---------- */
+.reveal { transition: opacity .7s cubic-bezier(.2, .7, .3, 1), transform .7s cubic-bezier(.2, .7, .3, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .card:hover, .step:hover, .segment:hover, .stat:hover, .g-item:hover, .btn:hover { transform: none; }
+}
+
+/* ---------- Kerapian responsif ---------- */
+@media (max-width: 960px) {
+  .section-head { margin-bottom: 36px; }
+  .nav__links a::after { display: none; }
+}
+@media (max-width: 640px) {
+  .section { padding: 56px 0; }
+  .card { padding: 24px; }
+  .cta-box { padding: 26px; }
+  .section-head.center::after { width: 56px; margin-top: 16px; }
+}
+
+
+/* =========================================================
+   KARIER & OPEN PARTNER
+   ========================================================= */
+
+/* ---------- Tab filter ---------- */
+.tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  margin: 0 auto clamp(30px, 3.2vw, 46px);
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid rgba(31, 111, 235, .14);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.section--soft .tabs {
+  background: rgba(255, 255, 255, .9);
+}
+.tabs__btn {
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 9px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.tabs__btn:hover { color: var(--blue); }
+.tabs__btn.is-active {
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: var(--shadow-blue);
+}
+
+/* ---------- Kartu lowongan ---------- */
+.job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.job-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.job-card__icon {
+  width: 52px; height: 52px;
+  flex: 0 0 auto;
+  border-radius: 15px;
+  display: grid; place-items: center;
+  font-size: 1.35rem;
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(31, 111, 235, .26);
+}
+.job-card__headtext { min-width: 0; }
+.job-card__badge {
+  display: inline-block;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: var(--grad-brand-soft);
+  border: 1px solid rgba(31, 111, 235, .16);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 7px;
+}
+.job-card__title { margin: 0; font-size: 1.16rem; }
+
+.job-card__meta {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.job-card__meta li { display: flex; align-items: center; gap: 6px; }
+.job-card__meta i { color: var(--blue); font-size: .9rem; }
+
+.job-card__desc {
+  color: var(--muted);
+  font-size: .95rem;
+  margin: 0 0 16px;
+}
+
+.job-card__list { margin: 0 0 14px; }
+.job-card__listtitle {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin: 0 0 9px;
+}
+.job-card__ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.job-card__ul li {
+  position: relative;
+  padding-left: 22px;
+  font-size: .9rem;
+  color: var(--muted);
+  margin-bottom: 7px;
+  line-height: 1.55;
+}
+.job-card__ul li::before {
+  content: "";
+  position: absolute; left: 0; top: 9px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, .10);
+}
+.job-card__list--ben .job-card__ul li::before {
+  background: linear-gradient(135deg, #00b8d9, #0ea5e9);
+  box-shadow: 0 0 0 3px rgba(0, 184, 217, .12);
+}
+
+/* Detail yang bisa dibuka-tutup */
+.job-card__detail {
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+  animation: jobDetailIn .28s ease both;
+}
+@keyframes jobDetailIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.job-card__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+/* ---------- Kartu Open Partner ---------- */
+.partner-program {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.partner-program__icon {
+  width: 54px; height: 54px;
+  border-radius: 16px;
+  display: grid; place-items: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #7c4dff, #1f6feb);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(124, 77, 255, .26);
+}
+.grid--3 .partner-program:nth-child(3n + 2) .partner-program__icon {
+  background: linear-gradient(135deg, #1f6feb, #00b8d9);
+  box-shadow: 0 10px 22px rgba(0, 184, 217, .26);
+}
+.grid--3 .partner-program:nth-child(3n + 3) .partner-program__icon {
+  background: linear-gradient(135deg, #f0932b, #f97316);
+  box-shadow: 0 10px 22px rgba(240, 147, 43, .26);
+}
+.partner-program__cat {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--violet);
+  background: rgba(124, 77, 255, .10);
+  border: 1px solid rgba(124, 77, 255, .18);
+  padding: 3px 11px;
+  border-radius: 999px;
+  margin-bottom: 9px;
+}
+.partner-program__title { margin: 0 0 10px; font-size: 1.12rem; }
+.partner-program__desc {
+  color: var(--muted);
+  font-size: .93rem;
+  margin: 0 0 16px;
+}
+.partner-program__ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  width: 100%;
+}
+.partner-program__ul li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: .9rem;
+  color: var(--muted);
+  margin-bottom: 9px;
+  line-height: 1.55;
+}
+.partner-program__ul li i {
+  color: var(--cyan);
+  font-size: .95rem;
+  line-height: 1.4;
+  flex: 0 0 auto;
+}
+.partner-program__req {
+  width: 100%;
+  margin-bottom: 16px;
+}
+.partner-program__req summary {
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--navy);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: var(--bg-soft);
+  transition: background .2s ease, color .2s ease;
+}
+.partner-program__req summary::-webkit-details-marker { display: none; }
+.partner-program__req summary::before {
+  content: "\F64D"; /* bi-chevron-down */
+  font-family: "bootstrap-icons";
+  transition: transform .2s ease;
+}
+.partner-program__req[open] summary::before { transform: rotate(180deg); }
+.partner-program__req summary:hover { background: var(--grad-brand-soft); color: var(--blue); }
+.partner-program__req .partner-program__ul {
+  margin: 12px 0 0;
+  padding-left: 6px;
+}
+.partner-program__req .partner-program__ul li i { color: var(--muted); }
+
+.partner-program__actions {
+  margin-top: auto;
+  padding-top: 6px;
+  width: 100%;
+}
+.partner-program__actions .btn { width: 100%; justify-content: center; }
+
+/* ---------- Responsif ---------- */
+@media (max-width: 640px) {
+  .tabs { width: 100%; border-radius: 18px; }
+  .tabs__btn { flex: 1 1 auto; padding: 9px 14px; font-size: .85rem; }
+  .job-card__head { flex-direction: column; }
+}
+
+/* Butir benefit di panel detail */
+.job-card__ul--ben li::before {
+  background: linear-gradient(135deg, #00b8d9, #0ea5e9);
+  box-shadow: 0 0 0 3px rgba(0, 184, 217, .12);
 }
