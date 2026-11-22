@@ -366,13 +366,13 @@ export async function buildIndicators(days = 30) {
   const eventUnique = eventRows.length;
 
   const repeatRows = await query(
-    `SELECT COUNT(*) AS total_visitors, SUM(CASE WHEN views > 1 THEN 1 ELSE 0 END) AS returning
+    `SELECT COUNT(*) AS total_visitors, SUM(CASE WHEN views > 1 THEN 1 ELSE 0 END) AS returning_visitors
        FROM (SELECT visitor_id, COUNT(*) AS views FROM page_views
               WHERE created_at >= DATE_SUB(NOW(), ${iv}) AND visitor_id IS NOT NULL
               GROUP BY visitor_id) t`
   );
   const totalVisitors = Number(repeatRows[0]?.total_visitors || 0);
-  const returning = Number(repeatRows[0]?.returning || 0);
+  const returning = Number(repeatRows[0]?.returning_visitors || 0);
   const retentionRate = pct(returning, totalVisitors);
 
   const conversionRate = visitors > 0 ? round((leadTotal30 / visitors) * 100, 2) : 0;

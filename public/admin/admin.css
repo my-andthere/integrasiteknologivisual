@@ -279,6 +279,52 @@ small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; 
 .seo-ok { color: var(--ok); margin-right: 4px; }
 .seo-warn { color: var(--err); margin-right: 4px; }
 
+/* ============ ANALISA INDIKATOR ============ */
+/* angka pada gauge harus di atas lingkaran putih (.score::after) */
+.score { color: var(--ink); }
+.score::after { z-index: -1; }
+.score--sm { width: 58px; height: 58px; font-size: 17px; }
+.score--sm::after { inset: 5px; }
+
+.mark.warn { color: var(--warn); }
+.mark.bad { color: var(--err); }
+
+.grid-ind {
+  display: grid; gap: 14px; margin-top: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+.ind-card {
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; background: var(--bg-soft);
+}
+.ind-card__meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ind-card__meta strong { font-size: 14px; color: var(--ink); }
+.ind-card__meta strong i { color: var(--blue); }
+.ind-card__meta .badge { align-self: flex-start; }
+.ind-card__meta small { color: var(--muted); font-size: 12px; }
+
+.ind-block { padding: 14px 0; border-top: 1px solid var(--line); }
+.ind-block:first-child { border-top: 0; padding-top: 0; }
+.ind-block h4 {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 10px; font-size: 14px; color: var(--ink);
+}
+.ind-block h4 i { color: var(--blue); }
+.ind-block h4 .badge { font-size: 11px; }
+
+.ind-delta--up { color: var(--ok); font-weight: 700; }
+.ind-delta--down { color: var(--err); font-weight: 700; }
+
+.ind-prio {
+  display: inline-block; padding: 2px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; background: #e2e8f0; color: #475569;
+}
+.ind-prio--tinggi { background: #fee2e2; color: #b91c1c; }
+.ind-prio--sedang { background: #fef3c7; color: #b45309; }
+.ind-prio--rendah { background: #e0f2fe; color: #0369a1; }
+
 /* ============ TOAST ============ */
 .toast {
   position: fixed; right: 22px; bottom: 22px; z-index: 50;
