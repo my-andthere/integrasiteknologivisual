@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { query, parseJson } from './db.js';
 import { login, logout, requireAuth, resolveSession, visitorFingerprint } from './auth.js';
+import { buildIndicators, gradeOf } from './indicators.js';
 
 const router = express.Router();
 
@@ -995,6 +996,34 @@ router.get('/admin/seo/audit', async (_req, res, next) => {
     );
 
     res.json({ ok: true, score, checks, articles: articleChecks });
+  } catch (e) { next(e); }
+});
+
+/* =========================================================
+   ANALISA INDIKATOR
+   ========================================================= */
+
+/** Ringkasan Analisa Indikator: SEO, Performa, Konten, Kata Kunci, Engagement. */
+router.get('/admin/indicators', async (req, res, next) => {
+  try {
+    const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+    const data = await buildIndicators(days);
+    res.json(data);
+  } catch (e) { next(e); }
+});
+
+/** Ringkasan ringkas untuk badge di sidebar (skor overall + grade). */
+router.get('/admin/indicators/summary', async (req, res, next) => {
+  try {
+    const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365);
+    const data = await buildIndicators(days);
+    res.json({
+      ok: true,
+      days: data.days,
+      overall: data.overall,
+      sections: data.sections.map((s) => ({ key: s.key, label: s.label, score: s.score, grade: s.grade })),
+      issueCount: data.issues.length
+    });
   } catch (e) { next(e); }
 });
 

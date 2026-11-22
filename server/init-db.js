@@ -40,14 +40,26 @@ function splitStatements(sql) {
   return out;
 }
 
-const files = ['schema.sql', 'schema-cms.sql'];
+/* Skrip schema yang dijalankan berurutan:
+   - schema.sql        : tabel inti + seed konten dasar
+   - schema-cms.sql   : tabel & seed untuk CMS (artikel, banner, klien, ...)
+   - schema-careers.sql: tabel Karier & Open Partner (idempotent, aman diulang)
+   - schema-i18n.sql   : kolom `translations` (EN/JA) + seed terjemahan
+   Catatan: seluruh berkas di atas bersifat idempotent (CREATE TABLE IF NOT EXISTS,
+   INSERT ... ON DUPLICATE / IGNORE, ALTER ... IF NOT EXISTS, UPDATE hanya bila
+   kolom translations masih kosong) sehingga aman dijalankan berulang kali. */
+const files = ['schema.sql', 'schema-cms.sql', 'schema-careers.sql', 'schema-i18n.sql'];
 let total = 0;
 
 for (const file of files) {
   const raw = fs.readFileSync(path.join(__dirname, file), 'utf8');
   const statements = splitStatements(stripComments(raw));
   for (const stmt of statements) {
-    await pool.query(stmt);
+    const [result] = await pool.query(stmt);
+    /* SELECT verifikasi (schema-i18n.sql) — tampilkan ringkasannya */
+    if (Array.isArray(result) && result.length) {
+      for (const row of result) console.log('   ', JSON.stringify(row));
+    }
   }
   total += statements.length;
   console.log(`✔ ${file} — ${statements.length} statement dieksekusi`);

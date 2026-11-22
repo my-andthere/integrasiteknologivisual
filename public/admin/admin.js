@@ -111,6 +111,7 @@
       banners: loadBanners,
       careers: loadCareers,
       analytics: loadAnalytics,
+      indicators: loadIndicators,
       leads: loadLeads
     };
     if (loaders[name]) loaders[name]().catch((e) => toast(e.message));
@@ -1135,6 +1136,119 @@
 
   $('#refreshAnalytics').addEventListener('click', () => loadAnalytics().catch((e) => toast(e.message)));
   $('#rangeDays').addEventListener('change', () => loadAnalytics().catch((e) => toast(e.message)));
+
+  /* ---------------- analisa indikator ---------------- */
+  const IND_STATUS_CLASS = { ok: 'ok', warn: 'warn', bad: 'bad' };
+  const IND_PRIORITY_CLASS = { tinggi: 'ind-prio--tinggi', sedang: 'ind-prio--sedang', rendah: 'ind-prio--rendah' };
+
+  function indGauge(el, score) {
+    if (!el) return;
+    const s = Math.max(0, Math.min(100, num(score)));
+    el.textContent = s;
+    el.style.background = `conic-gradient(var(--blue) ${s}%, var(--line) ${s}%)`;
+  }
+
+  function indMetricRow(m) {
+    const cls = IND_STATUS_CLASS[m.status] || 'warn';
+    const icon = m.status === 'ok' ? 'bi-check-lg' : m.status === 'bad' ? 'bi-x-lg' : 'bi-exclamation-lg';
+    return `<div class="check">
+      <span class="mark ${cls}"><i class="bi ${icon}"></i></span>
+      <span><b>${escapeHtml(m.name)}</b> <small>— ${escapeHtml(String(m.value))} / target ${escapeHtml(m.target)}${m.detail ? ` · ${escapeHtml(m.detail)}` : ''}</small></span>
+    </div>`;
+  }
+
+  async function loadIndicators() {
+    const days = $('#indDays').value;
+    const d = await api(`/admin/indicators?days=${days}`);
+
+    indGauge($('#indOverall'), d.overall.score);
+
+    const sections = d.sections || [];
+    $('#indOverallInfo').innerHTML = `
+      <div class="check"><span class="mark ok"><i class="bi bi-clipboard-data"></i></span>
+        <span><b>Skor ${d.overall.score}/100</b> <small>— Grade ${d.overall.grade}: ${escapeHtml(d.overall.label)}</small></span></div>
+      <div class="check"><span class="mark ok"><i class="bi bi-calendar3"></i></span>
+        <span><b>Periode ${d.days} hari</b> <small>— ${fmt((d.issues || []).length)} isu terdeteksi</small></span></div>
+      ${sections.map((s) => `<div class="check"><span class="mark ${s.score >= 75 ? 'ok' : s.score >= 50 ? 'warn' : 'bad'}"><i class="bi bi-dot"></i></span>
+        <span><b>${escapeHtml(s.label)}</b> <small>— ${s.score}/100 (grade ${escapeHtml(s.grade)}, bobot ${s.weight}%)</small></span></div>`).join('')}`;
+
+    $('#indSectionCards').innerHTML = sections.map((s) => `
+      <div class="ind-card">
+        <div class="score score--sm" data-ind-score="${s.key}">${s.score}</div>
+        <div class="ind-card__meta">
+          <strong><i class="bi ${escapeHtml(s.icon)}"></i> ${escapeHtml(s.label)}</strong>
+          <span class="badge ${s.score >= 75 ? 'badge--published' : s.score >= 50 ? 'badge--draft' : 'badge--lost'}">Grade ${escapeHtml(s.grade)}</span>
+          <small class="muted">${escapeHtml(s.gradeLabel)} · bobot ${s.weight}%</small>
+        </div>
+      </div>`).join('');
+
+    sections.forEach((s) => {
+      indGauge(document.querySelector(`[data-ind-score="${s.key}"]`), s.score);
+    });
+
+    $('#indMetrics').innerHTML = sections.map((s) => `
+      <div class="ind-block">
+        <h4><i class="bi ${escapeHtml(s.icon)}"></i> ${escapeHtml(s.label)}
+          <span class="badge ${s.score >= 75 ? 'badge--published' : s.score >= 50 ? 'badge--draft' : 'badge--lost'}">${s.score}/100</span></h4>
+        <div class="checks">${(s.metrics || []).map(indMetricRow).join('')}</div>
+      </div>`).join('');
+
+    // Tren
+    const trend = (d.performa && d.performa.trend) || [];
+    $('#indTrend').innerHTML = trend.length
+      ? columnChart(trend.map((t) => ({ day: String(t.day).slice(5), views: t.views })), 'day', 'views')
+      : '<p class="muted">Belum ada data trafik pada periode ini.</p>';
+    $('#indTrend').classList.add('chart--hour');
+
+    $('#indDevices').innerHTML = barList((d.performa && d.performa.devices) || [], 'label', 'value');
+
+    // Tabel halaman
+    $('#indTopPages tbody').innerHTML = ((d.performa && d.performa.topPages) || []).map((p) => `
+      <tr><td>${escapeHtml(p.path || '-')}</td><td>${fmt(p.views)}</td><td>${fmt(p.visitors)}</td><td>${fmt(p.avgDuration)} dtk</td></tr>`
+    ).join('') || '<tr><td colspan="4" class="muted">Belum ada data.</td></tr>';
+
+    $('#indSlowPages tbody').innerHTML = ((d.performa && d.performa.slowPages) || []).map((p) => `
+      <tr><td>${escapeHtml(p.path || '-')}</td><td>${fmt(p.views)}</td><td>${fmt(p.avgDuration)} dtk</td></tr>`
+    ).join('') || '<tr><td colspan="3" class="muted">Belum ada data.</td></tr>';
+
+    // Kata kunci
+    $('#indKwDist').innerHTML = barList((d.keywords && d.keywords.distribution) || [], 'label', 'value');
+    $('#indKeywords tbody').innerHTML = ((d.keywords && d.keywords.items) || []).map((k) => {
+      const delta = num(k.delta);
+      const dcls = delta > 0 ? 'ind-delta--up' : delta < 0 ? 'ind-delta--down' : '';
+      const dtxt = delta > 0 ? `↑ ${delta}` : delta < 0 ? `↓ ${Math.abs(delta)}` : '—';
+      return `<tr>
+        <td>${escapeHtml(k.keyword || '-')}<br><small>${escapeHtml(k.intent || '')}</small></td>
+        <td><strong>${k.currentRank == null ? 'n/a' : k.currentRank}</strong></td>
+        <td>${fmt(k.searchVolume)}</td>
+        <td class="${dcls}">${dtxt}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="4" class="muted">Belum ada kata kunci.</td></tr>';
+
+    // Konten
+    $('#indCategories').innerHTML = barList((d.konten && d.konten.categories) || [], 'label', 'value');
+    $('#indArticles tbody').innerHTML = ((d.konten && d.konten.articles) || []).map((a) => `
+      <tr>
+        <td><strong>${escapeHtml(a.title || a.slug)}</strong><br><small>${escapeHtml(a.status || '')} · ${fmt(a.views)} views</small></td>
+        <td>${fmt(a.wordCount)}</td>
+        <td><strong>${a.score}</strong>/100</td>
+        <td class="muted">${escapeHtml((a.issues || []).join(', ') || '—')}</td>
+      </tr>`).join('') || '<tr><td colspan="4" class="muted">Belum ada artikel.</td></tr>';
+
+    // Prioritas perbaikan
+    $('#indIssues tbody').innerHTML = (d.issues || []).map((i) => `
+      <tr>
+        <td><span class="ind-prio ${IND_PRIORITY_CLASS[i.priority] || 'ind-prio--rendah'}">${escapeHtml(i.priority)}</span></td>
+        <td>${escapeHtml(i.area)}</td>
+        <td><strong>${escapeHtml(i.title)}</strong></td>
+        <td class="muted">${escapeHtml(i.detail || '')}</td>
+      </tr>`).join('') || '<tr><td colspan="4" class="muted">Tidak ada isu terdeteksi. Bagus!</td></tr>';
+
+    $('#indGeneratedAt').textContent = `Diperbarui ${new Date(d.generatedAt).toLocaleString('id-ID')}`;
+  }
+
+  $('#refreshIndicators').addEventListener('click', () => loadIndicators().catch((e) => toast(e.message)));
+  $('#indDays').addEventListener('change', () => loadIndicators().catch((e) => toast(e.message)));
 
   /* ---------------- leads ---------------- */
   async function loadLeads() {

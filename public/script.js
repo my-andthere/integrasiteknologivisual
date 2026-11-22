@@ -179,11 +179,12 @@ function renderServices(items) {
     const icon = el('div', 'card__icon');
     icon.appendChild(biIcon(s.icon || 'gear'));
     card.appendChild(icon);
-    card.appendChild(el('h3', '', s.title));
-    card.appendChild(el('p', '', s.description || ''));
-    if (Array.isArray(s.features) && s.features.length) {
+    card.appendChild(el('h3', '', tf(s, 'title', s.title || '')));
+    card.appendChild(el('p', '', tf(s, 'description', s.description || '')));
+    const features = tf(s, 'features', s.features);
+    if (Array.isArray(features) && features.length) {
       const ul = el('ul', 'card__list');
-      s.features.forEach((f) => ul.appendChild(el('li', '', f)));
+      features.forEach((f) => ul.appendChild(el('li', '', f)));
       card.appendChild(ul);
     }
     grid.appendChild(card);
@@ -197,11 +198,12 @@ function renderProducts(items) {
   grid.innerHTML = '';
   items.forEach((p) => {
     const card = el('article', 'card reveal visible');
-    card.appendChild(el('h3', '', p.title));
-    card.appendChild(el('p', '', p.description || ''));
-    if (Array.isArray(p.features) && p.features.length) {
+    card.appendChild(el('h3', '', tf(p, 'title', p.title || '')));
+    card.appendChild(el('p', '', tf(p, 'description', p.description || '')));
+    const features = tf(p, 'features', p.features);
+    if (Array.isArray(features) && features.length) {
       const ul = el('ul', 'card__list');
-      p.features.forEach((f) => ul.appendChild(el('li', '', f)));
+      features.forEach((f) => ul.appendChild(el('li', '', f)));
       card.appendChild(ul);
     }
     grid.appendChild(card);
@@ -215,9 +217,10 @@ function renderSectors(items) {
   if (!items || !items.length) return;
   const make = (s) => {
     const box = el('div', 'segment reveal visible');
-    box.appendChild(el('h3', '', s.title));
-    box.appendChild(el('p', '', s.description || ''));
-    if (s.tags) box.appendChild(el('small', '', s.tags));
+    box.appendChild(el('h3', '', tf(s, 'title', s.title || '')));
+    box.appendChild(el('p', '', tf(s, 'description', s.description || '')));
+    const tags = tf(s, 'tags', s.tags);
+    if (tags) box.appendChild(el('small', '', tags));
     return box;
   };
   if (gridA) {
@@ -240,7 +243,7 @@ function fillSelect(selectId, items, labelKey) {
   items.forEach((it) => {
     const opt = document.createElement('option');
     opt.value = it[labelKey];
-    opt.textContent = it[labelKey];
+    opt.textContent = tf(it, labelKey, it[labelKey]);
     sel.appendChild(opt);
   });
 }
@@ -593,19 +596,19 @@ function renderArticles(items) {
     card.appendChild(cover);
 
     const body = el('div', 'article-card__body');
-    body.appendChild(el('span', 'article-card__cat', a.category || 'Insight'));
-    body.appendChild(el('h3', '', a.title));
+    body.appendChild(el('span', 'article-card__cat', tf(a, 'category', a.category || 'Insight')));
+    body.appendChild(el('h3', '', tf(a, 'title', a.title || '')));
 
     const meta = el('div', 'article-card__meta');
     meta.appendChild(el('span', '', formatDate(a.published_at)));
     if (a.author) meta.appendChild(el('span', '', a.author));
-    if (a.views) meta.appendChild(el('span', '', `${a.views}× dibaca`));
+    if (a.views) meta.appendChild(el('span', '', `${a.views}× ${tr('dibaca')}`));
     body.appendChild(meta);
 
-    body.appendChild(el('p', '', a.excerpt || ''));
+    body.appendChild(el('p', '', tf(a, 'excerpt', a.excerpt || '')));
 
     const link = el('a', 'article-card__link');
-    link.appendChild(document.createTextNode('Baca artikel '));
+    link.appendChild(document.createTextNode(tr('Baca artikel ')));
     link.appendChild(el('i', 'bi bi-arrow-right'));
     link.href = `/artikel.html?slug=${encodeURIComponent(a.slug)}`;
     link.setAttribute('data-track', 'article_click');
@@ -620,7 +623,7 @@ function formatDate(value) {
   if (!value) return '';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(localeTag(), { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 /* --- Muat artikel dari CMS --- */

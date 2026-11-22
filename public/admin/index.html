@@ -54,6 +54,7 @@
       <button class="nav__item" data-view="banners"><span><i class="bi bi-images"></i></span> Banner Slideshow</button>
       <button class="nav__item" data-view="careers"><span><i class="bi bi-person-badge"></i></span> Karier &amp; Open Partner</button>
       <button class="nav__item" data-view="analytics"><span><i class="bi bi-bar-chart-line"></i></span> Analitik</button>
+      <button class="nav__item" data-view="indicators"><span><i class="bi bi-clipboard-data"></i></span> Analisa Indikator</button>
       <button class="nav__item" data-view="leads"><span><i class="bi bi-envelope"></i></span> Leads</button>
     </nav>
     <div class="sidebar__foot">
@@ -720,6 +721,113 @@
         <div class="card">
           <h3>Event Pelacakan</h3>
           <div id="eventList" class="bar-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ANALISA INDIKATOR ============ -->
+    <section class="view" id="view-indicators" hidden>
+      <header class="view__head">
+        <h1>Analisa Indikator</h1>
+        <p class="muted">Penilaian menyeluruh: SEO, Performa, Konten, Kata Kunci, dan Engagement &amp; Lead.</p>
+      </header>
+
+      <div class="card">
+        <div class="toolbar">
+          <label class="inline">Periode
+            <select id="indDays"><option value="7">7 hari</option><option value="30" selected>30 hari</option><option value="90">90 hari</option><option value="365">1 tahun</option></select>
+          </label>
+          <button class="btn btn--primary" id="refreshIndicators"><i class="bi bi-arrow-clockwise"></i> Muat Ulang</button>
+          <span class="muted" id="indGeneratedAt"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Skor Indikator Keseluruhan</h3>
+        <div class="score-wrap">
+          <div class="score" id="indOverall">0</div>
+          <div id="indOverallInfo" class="checks"></div>
+        </div>
+        <div class="grid-ind" id="indSectionCards"></div>
+      </div>
+
+      <div class="card">
+        <h3>Rincian Metrik per Kategori</h3>
+        <div id="indMetrics"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Tren Trafik &amp; Durasi</h3>
+          <div id="indTrend" class="chart"></div>
+        </div>
+        <div class="card">
+          <h3>Perangkat Pengunjung</h3>
+          <div id="indDevices" class="bar-list"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Halaman Terlaris</h3>
+          <div class="table-wrap">
+            <table class="table" id="indTopPages">
+              <thead><tr><th>Path</th><th>Views</th><th>Pengunjung</th><th>Durasi</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <h3>H Paling Lambat (Perlu Diperbaiki)</h3>
+          <div class="table-wrap">
+            <table class="table" id="indSlowPages">
+              <thead><tr><th>Path</th><th>Views</th><th>Durasi Rata-rata</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Sebaran Posisi Kata Kunci</h3>
+          <div id="indKwDist" class="bar-list"></div>
+        </div>
+        <div class="card">
+          <h3>Performa Kata Kunci</h3>
+          <div class="table-wrap">
+            <table class="table" id="indKeywords">
+              <thead><tr><th>Keyword</th><th>Posisi</th><th>Volume</th><th>Perubahan</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Sebaran Kategori Konten</h3>
+          <div id="indCategories" class="bar-list"></div>
+        </div>
+        <div class="card">
+          <h3>Kinerja Artikel (Skor Terendah Dahulu)</h3>
+          <div class="table-wrap">
+            <table class="table" id="indArticles">
+              <thead><tr><th>Artikel</th><th>Kata</th><th>Skor</th><th>Masalah</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Prioritas Perbaikan</h3>
+        <p class="muted">Urut dari isu paling berdampak. Kerjakan berurutan dari atas.</p>
+        <div class="table-wrap">
+          <table class="table" id="indIssues">
+            <thead><tr><th>Prioritas</th><th>Area</th><th>Indikator</th><th>Detail</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </section>
