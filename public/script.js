@@ -866,7 +866,7 @@ function renderClients(payload) {
   if (partnersGrid && partners.length) {
     partnersGrid.innerHTML = '';
     partners.forEach((p) => {
-      const card = el('article', 'card partner-card reveal visible');
+      const card = el('article', 'partner-card reveal visible');
       if (p.image_url) {
         const img = document.createElement('img');
         img.className = 'partner-card__logo';

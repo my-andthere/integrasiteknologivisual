@@ -842,6 +842,7 @@ p { margin: 0 0 1rem; }
 }
 .partner-card {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: var(--radius);
   padding: 10px;
   transition: transform .2s ease;
 }
@@ -1282,13 +1283,14 @@ body {
 
 /* ---------- Logo klien & mitra ---------- */
 /* Klien & mitra: tanpa kartu — logo langsung di atas latar section. */
-/* Klien & mitra: tanpa kartu — logo langsung di atas latar section. */
 .logo-card, .partner-card {
   position: relative;
   background: transparent;
   border: 0;
   box-shadow: none;
 }
+.logo-card::before, .partner-card::before { content: none; }
+.logo-card:hover, .partner-card:hover { transform: none; box-shadow: none; }
 .logo-card__logo, .partner-card__logo {
   filter: grayscale(.30) opacity(.85);
   transition: filter .28s ease, transform .28s ease, box-shadow .28s ease;
