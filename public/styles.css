@@ -879,7 +879,16 @@ p { margin: 0 0 1rem; }
   color: transparent;
 }
 .section--dark h2, .section--dark h3 { color: #fff; }
-.section--dark .banner__title span { background: var(--grad-text-dark); }
+/* Penting: shorthand `background:` me-reset background-clip menjadi border-box,
+   sehingga teks jadi transparan tanpa gradien yang ter-clip -> teks tak terlihat.
+   Gunakan background-image + clip ulang. */
+.section--dark .banner__title span {
+  background-image: var(--grad-text-dark);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 
 /* ---------- Latar halaman: mesh gradien halus ---------- */
 body {
@@ -1036,7 +1045,33 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
-.banner__title span { background: var(--grad-text); }
+/* span berisi kata yang disorot: harus memakai background-image + background-clip:text.
+   Shorthand `background:` akan me-reset background-clip menjadi border-box sehingga
+   teks transparan tidak terlihat (hanya blok gradien). */
+.banner__title span {
+  background-image: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* Di atas foto banner, kata yang disorot memakai gradasi terang agar kontras. */
+.hero .banner__title span {
+  background-image: linear-gradient(100deg, #ffffff 0%, #a8ecf8 48%, #00b8d9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* Fallback: browser tanpa dukungan gradient-clipped text -> pakai warna solid. */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .banner__title,
+  .banner__title span {
+    background: none;
+    -webkit-text-fill-color: #fff;
+    color: #fff;
+  }
+}
 .hero__lead { color: #cadcf2; }
 .hero__badges { border-top-color: rgba(255, 255, 255, .16); }
 .hero__badges b {
