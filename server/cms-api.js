@@ -21,7 +21,8 @@ const UPLOAD_DIR = path.join(UPLOAD_ROOT, 'banners');
 const MEDIA_FOLDERS = {
   banners: UPLOAD_DIR,
   clients: path.join(UPLOAD_ROOT, 'clients'),
-  partners: path.join(UPLOAD_ROOT, 'partners')
+  partners: path.join(UPLOAD_ROOT, 'partners'),
+  branding: path.join(UPLOAD_ROOT, 'branding')
 };
 const IMG_EXT = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/webp': '.webp', 'image/gif': '.gif', 'image/svg+xml': '.svg' };
 
@@ -829,7 +830,7 @@ router.post('/admin/media/upload', async (req, res, next) => {
     const { filename, dataUrl } = req.body || {};
     const folder = String((req.body || {}).folder || 'clients').toLowerCase();
     if (!MEDIA_FOLDERS[folder]) {
-      return res.status(422).json({ ok: false, error: 'folder tidak valid (clients/partners)' });
+      return res.status(422).json({ ok: false, error: 'folder tidak valid (clients/partners/branding)' });
     }
     if (!dataUrl || typeof dataUrl !== 'string') {
       return res.status(422).json({ ok: false, error: 'data gambar wajib diisi' });
@@ -863,6 +864,50 @@ router.post('/admin/media/upload', async (req, res, next) => {
       ok: true,
       url: `/uploads/${folder}/${fileName}`,
       message: `Gambar ${folder} diunggah`
+    });
+  } catch (e) { next(e); }
+});
+
+/* Upload aset branding (logo / ikon favicon) — body: { filename, dataUrl, kind } */
+router.post('/admin/branding/upload', async (req, res, next) => {
+  try {
+    const { filename, dataUrl } = req.body || {};
+    const kind = String((req.body || {}).kind || 'logo').toLowerCase();
+    if (!['logo', 'icon'].includes(kind)) {
+      return res.status(422).json({ ok: false, error: 'jenis aset tidak valid (logo/icon)' });
+    }
+    if (!dataUrl || typeof dataUrl !== 'string') {
+      return res.status(422).json({ ok: false, error: 'data gambar wajib diisi' });
+    }
+    const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+    if (!m) return res.status(422).json({ ok: false, error: 'format gambar tidak valid' });
+    const mime = m[1].toLowerCase();
+    const ext = IMG_EXT[mime];
+    if (!ext) return res.status(422).json({ ok: false, error: 'tipe gambar tidak didukung (png/jpg/webp/gif/svg)' });
+
+    const buffer = Buffer.from(m[2], 'base64');
+    if (!buffer.length) return res.status(422).json({ ok: false, error: 'gambar kosong' });
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(413).json({ ok: false, error: 'ukuran gambar maksimal 5MB' });
+    }
+
+    let base = String(filename || kind)
+      .toLowerCase()
+      .replace(/\.[a-z0-9]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || kind;
+
+    const targetDir = MEDIA_FOLDERS.branding;
+    await fs.mkdir(targetDir, { recursive: true });
+    const stamp = Date.now().toString(36);
+    const fileName = `${kind}-${base}-${stamp}${ext}`;
+    await fs.writeFile(path.join(targetDir, fileName), buffer);
+
+    res.json({
+      ok: true,
+      url: `/uploads/branding/${fileName}`,
+      message: kind === 'icon' ? 'Ikon diunggah' : 'Logo diunggah'
     });
   } catch (e) { next(e); }
 });

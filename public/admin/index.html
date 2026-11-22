@@ -313,6 +313,41 @@
       </div>
 
       <div class="card">
+        <h3>Logo &amp; Ikon</h3>
+        <p class="muted">Unggah logo perusahaan (ditampilkan di header &amp; footer situs publik) dan ikon favicon. Format png/jpg/webp/gif/svg, maks 5MB.</p>
+        <div class="grid-2">
+          <div class="brand-upload">
+            <h4>Logo Utama</h4>
+            <label>URL Logo <input type="text" data-setting="brand.logo_url" maxlength="500" placeholder="/uploads/branding/logo-xxx.png" /></label>
+            <label>Upload Logo
+              <input type="file" id="brandLogoFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+            </label>
+            <div id="brandLogoPreview" hidden>
+              <span class="muted">Pratinjau logo:</span><br />
+              <img id="brandLogoPreviewImg" alt="Pratinjau logo perusahaan" style="max-width:220px;max-height:90px;object-fit:contain;border-radius:10px;border:1px solid var(--line);margin-top:8px;background:#f5f8fc" />
+            </div>
+          </div>
+          <div class="brand-upload">
+            <h4>Ikon / Favicon</h4>
+            <label>URL Ikon <input type="text" data-setting="brand.icon_url" maxlength="500" placeholder="/uploads/branding/icon-xxx.svg" /></label>
+            <label>Upload Ikon
+              <input type="file" id="brandIconFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+            </label>
+            <div id="brandIconPreview" hidden>
+              <span class="muted">Pratinjau ikon:</span><br />
+              <img id="brandIconPreviewImg" alt="Pratinjau ikon" style="width:64px;height:64px;object-fit:contain;border-radius:12px;border:1px solid var(--line);margin-top:8px;background:#f5f8fc" />
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn--primary" type="button" id="brandLogoUpload">Unggah Logo</button>
+          <button class="btn btn--primary" type="button" id="brandIconUpload">Unggah Ikon</button>
+          <button class="btn btn--ghost" type="button" id="brandLogoClear">Hapus Logo</button>
+          <button class="btn btn--ghost" type="button" id="brandIconClear">Hapus Ikon</button>
+        </div>
+      </div>
+
+      <div class="card">
         <h3>Pratinjau Langsung</h3>
         <div class="preview-brand" id="brandPreview">
           <div class="preview-brand__bar" id="pbBar">

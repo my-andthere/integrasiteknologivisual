@@ -156,6 +156,14 @@ p { margin: 0 0 1rem; }
 }
 .brand__text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand__text small { font-size: .68rem; font-weight: 500; color: var(--muted); letter-spacing: .04em; }
+.brand .brand__mark--img {
+  width: auto; height: 42px; padding: 0 4px; background: none; box-shadow: none;
+}
+.brand .brand__mark--img img {
+  max-height: 42px; max-width: 190px; width: auto; height: auto;
+  object-fit: contain; display: block; border-radius: 0;
+}
+.footer .brand__mark--img img { max-height: 38px; }
 
 .nav__links { display: flex; gap: 22px; align-items: center; }
 .nav__links a { font-size: .93rem; font-weight: 500; color: var(--muted); transition: color .15s; }

@@ -248,6 +248,12 @@ small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; 
   display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px;
   background: var(--pb-primary, var(--blue)); font-weight: 800; font-size: 12px;
 }
+.preview-brand__logo--img { width: auto; height: 40px; background: transparent; padding: 0 4px; }
+.preview-brand__logo--img img { max-height: 40px; max-width: 190px; object-fit: contain; display: block; }
+.brand-upload h4 { font-size: 14px; margin: 0 0 8px; }
+.brand-upload label { display: block; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+.brand-upload input[type="text"] { margin-top: 4px; }
+.brand-upload input[type="file"] { margin-top: 4px; font-size: 12px; }
 .preview-brand__body { padding: 18px; background: var(--bg-soft); }
 .preview-brand__body h4 { font-size: 18px; }
 .preview-brand__body p { color: var(--muted); font-size: 13px; }

@@ -352,13 +352,66 @@
     const root = document.documentElement;
     root.style.setProperty('--pb-primary', primary);
     root.style.setProperty('--pb-dark', dark);
-    $('#pbLogo').textContent = b['brand.logo_text'] || 'ITV';
     $('#pbTagline').textContent = b['brand.tagline'] || '';
+    const logoUrl = String(b['brand.logo_url'] || '').trim();
+    const pbLogo = $('#pbLogo');
+    if (logoUrl) {
+      pbLogo.textContent = '';
+      pbLogo.classList.add('preview-brand__logo--img');
+      const img = document.createElement('img');
+      img.src = logoUrl;
+      img.alt = b['brand.company_name'] || 'Logo';
+      pbLogo.appendChild(img);
+    } else {
+      pbLogo.classList.remove('preview-brand__logo--img');
+      pbLogo.textContent = b['brand.logo_text'] || 'ITV';
+    }
     $('#pbName').textContent = b['brand.company_name'] || '';
     $('#pbContact').textContent = [b['brand.email'], b['brand.phone'], b['brand.address']].filter(Boolean).join(' • ');
     const bar = $('#pbBar');
     bar.style.background = `linear-gradient(120deg, ${dark}, ${secondary})`;
     bar.querySelector('.preview-brand__logo').style.background = primary;
+
+    const iconUrl = String(b['brand.icon_url'] || '').trim();
+    updateBrandAssetPreview('logo', logoUrl);
+    updateBrandAssetPreview('icon', iconUrl);
+  }
+
+  function updateBrandAssetPreview(kind, url) {
+    const wrap = document.getElementById(kind === 'logo' ? 'brandLogoPreview' : 'brandIconPreview');
+    const img = document.getElementById(kind === 'logo' ? 'brandLogoPreviewImg' : 'brandIconPreviewImg');
+    if (!wrap || !img) return;
+    if (url) {
+      img.src = url;
+      wrap.hidden = false;
+    } else {
+      img.removeAttribute('src');
+      wrap.hidden = true;
+    }
+  }
+
+  async function uploadBrandAsset(kind, file) {
+    if (!file) return;
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const up = await api('/admin/branding/upload', {
+        method: 'POST',
+        body: { filename: file.name, dataUrl, kind }
+      });
+      const key = kind === 'icon' ? 'brand.icon_url' : 'brand.logo_url';
+      const input = document.querySelector(`[data-setting="${key}"]`);
+      if (input) input.value = up.url || '';
+      settings.branding = settings.branding || {};
+      settings.branding[key] = up.url || '';
+      updateBrandAssetPreview(kind, up.url || '');
+      updateBrandPreview();
+      try {
+        await api('/admin/settings', { method: 'PUT', body: { [key]: up.url || '' } });
+      } catch (e) { /* simpan manual tetap tersedia */ }
+      toast(up.message || 'Berkas berhasil diunggah');
+    } catch (e) {
+      toast(e.message);
+    }
   }
 
   async function loadBranding() {
@@ -392,6 +445,51 @@
       settings[group][key] = el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
       updateBrandPreview();
     });
+  });
+
+  /* ---------------- aset branding (logo & ikon) ---------------- */
+  [
+    { kind: 'logo', file: '#brandLogoFile', btn: '#brandLogoUpload', clear: '#brandLogoClear', key: 'brand.logo_url' },
+    { kind: 'icon', file: '#brandIconFile', btn: '#brandIconUpload', clear: '#brandIconClear', key: 'brand.icon_url' }
+  ].forEach((cfg) => {
+    const fileEl = $(cfg.file);
+    const btnEl = $(cfg.btn);
+    const clearEl = $(cfg.clear);
+
+    if (fileEl) {
+      fileEl.addEventListener('change', () => {
+        const f = fileEl.files && fileEl.files[0];
+        if (!f) return;
+        uploadBrandAsset(cfg.kind, f);
+        fileEl.value = '';
+      });
+    }
+    if (btnEl) {
+      btnEl.addEventListener('click', () => {
+        const f = fileEl && fileEl.files && fileEl.files[0];
+        if (!f) {
+          toast('Pilih berkas gambar terlebih dahulu');
+          return;
+        }
+        uploadBrandAsset(cfg.kind, f);
+      });
+    }
+    if (clearEl) {
+      clearEl.addEventListener('click', async () => {
+        const input = document.querySelector(`[data-setting="${cfg.key}"]`);
+        if (input) input.value = '';
+        settings.branding = settings.branding || {};
+        settings.branding[cfg.key] = '';
+        updateBrandAssetPreview(cfg.kind, '');
+        updateBrandPreview();
+        try {
+          await api('/admin/settings', { method: 'PUT', body: { [cfg.key]: '' } });
+          toast(cfg.kind === 'icon' ? 'Ikon dihapus' : 'Logo dihapus');
+        } catch (e) {
+          toast('Gagal menghapus aset: ' + (e && e.message ? e.message : 'kesalahan tidak diketahui'));
+        }
+      });
+    }
   });
 
   /* ---------------- kata kunci ---------------- */

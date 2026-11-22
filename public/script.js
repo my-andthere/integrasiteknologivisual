@@ -380,9 +380,33 @@ function applyBranding(brand) {
   if (company) {
     document.querySelectorAll('[data-brand="company"]').forEach((n) => (n.textContent = company));
   }
-  const logo = val('brand.logo_text');
-  if (logo) {
-    document.querySelectorAll('[data-brand="logo"]').forEach((n) => (n.textContent = logo));
+  const logoUrl = val('brand.logo_url');
+  const logoText = val('brand.logo_text');
+  document.querySelectorAll('[data-brand="logo"]').forEach((n) => {
+    if (logoUrl) {
+      n.classList.add('brand__mark--img');
+      n.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = logoUrl;
+      img.alt = val('brand.company_name') || 'Logo';
+      img.loading = 'eager';
+      img.decoding = 'async';
+      n.appendChild(img);
+    } else {
+      n.classList.remove('brand__mark--img');
+      if (logoText) n.textContent = logoText;
+    }
+  });
+
+  const iconUrl = val('brand.icon_url');
+  if (iconUrl) {
+    let link = document.querySelector('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'icon');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', iconUrl);
   }
   const tagline = val('brand.tagline');
   if (tagline) {
