@@ -539,7 +539,10 @@ function trackPage(path) {
     path: path || window.location.pathname,
     referrer: document.referrer || '',
     session_id: sessionId,
-    duration: 0
+    // Durasi dikirim terpisah lewat beacon "beforeunload".
+    // Jangan kirim 0 di sini:-duration 0 akan dianggap sebagai beacon
+    // dan baris pageview tidak pernah tercatat.
+    duration: null
   });
   try {
     if (navigator.sendBeacon) {
@@ -578,6 +581,7 @@ function trackEvent(eventName, label) {
 
 function initAnalytics() {
   const started = Date.now();
+  let durationSent = false;
   trackPage(window.location.pathname);
 
   document.addEventListener('click', (e) => {
@@ -585,7 +589,12 @@ function initAnalytics() {
     if (node) trackEvent(node.getAttribute('data-track'), node.textContent.trim().slice(0, 80));
   });
 
-  window.addEventListener('beforeunload', () => {
+  // Kirim durasi sekali saja, baik saat halaman ditutup (beforeunload)
+  // maupun saat tab disembunyikan (visibilitychange) — terutama di mobile
+  // sebelumunload sering tidak berjalan sehingga durasi tertinggal kosong.
+  const sendDuration = () => {
+    if (durationSent) return;
+    durationSent = true;
     const duration = Math.round((Date.now() - started) / 1000);
     try {
       navigator.sendBeacon(
@@ -595,6 +604,12 @@ function initAnalytics() {
         })
       );
     } catch { /* abaikan */ }
+  };
+
+  window.addEventListener('beforeunload', sendDuration);
+  window.addEventListener('pagehide', sendDuration);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') sendDuration();
   });
 }
 

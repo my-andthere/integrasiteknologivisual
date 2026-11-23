@@ -1233,13 +1233,17 @@ router.post('/cms/track', async (req, res, next) => {
     const ua = req.headers['user-agent'] || '';
     const visitorId = visitorFingerprint(req);
 
-    // Beacon "tutup halaman": perbarui durasi baris pageview yang sama (tanpa menambah baris baru)
-    if (b.duration && b.session_id) {
+    // Beacon "tutup halaman": perbarui durasi baris pageview yang sama (tanpa menambah baris baru).
+    // Durasi 0 pun tetap dianggap beacon — sebelumnya kondisi ini membuat baris duplikat
+    // dengan durasi NULL sehingga bounce rate & engagement rate menjadi tidak akurat.
+    const hasDuration = b.duration !== undefined && b.duration !== null && b.duration !== '';
+    const durationValue = hasDuration ? Number(b.duration) : null;
+    if (hasDuration && Number.isFinite(durationValue) && b.session_id) {
       const upd = await query(
         `UPDATE page_views SET duration = ?
          WHERE visitor_id = ? AND session_id = ? AND path = ?
          ORDER BY id DESC LIMIT 1`,
-        [Number(b.duration), visitorId, String(b.session_id).slice(0, 64), String(b.path || '/').slice(0, 255)]
+        [durationValue, visitorId, String(b.session_id).slice(0, 64), String(b.path || '/').slice(0, 255)]
       );
       if (upd && upd.affectedRows > 0) return res.json({ ok: true, updated: true });
     }
@@ -1256,7 +1260,7 @@ router.post('/cms/track', async (req, res, next) => {
         detectDevice(ua),
         detectBrowser(ua),
         detectOs(ua),
-        b.duration ? Number(b.duration) : null
+        durationValue
       ]
     );
     res.json({ ok: true });

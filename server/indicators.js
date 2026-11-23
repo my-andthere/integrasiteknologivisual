@@ -22,8 +22,15 @@ const round = (v, d = 0) => {
   const m = 10 ** d;
   return Math.round((Number(v) || 0) * m) / m;
 };
+/**
+ * Hitung jumlah kata pada konten artikel.
+ * Tag HTML dibuang lebih dulu, jika tidak tag seperti <p> ikut terhitung
+ * dan angka "kata" menjadi jauh lebih besar dari isi teks sebenarnya.
+ */
 const wordCountOf = (text) => {
-  const t = String(text || '').trim();
+  const raw = String(text || '');
+  const plain = raw.replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/gi, ' ');
+  const t = plain.replace(/\s+/g, ' ').trim();
   return t ? t.split(/\s+/).length : 0;
 };
 
@@ -167,10 +174,10 @@ export async function buildIndicators(days = 30) {
 
   const seoMetrics = [
     metric('Konfigurasi SEO situs', `${siteChecks.filter((c) => c.ok).length}/${siteChecks.length} lolos`, '7 dari 7 checklist', siteSeoScore >= 80 ? 'ok' : siteSeoScore >= 50 ? 'warn' : 'bad', siteSeoScore, 30, 'Judul, meta description, OG, canonical, sitemap, schema.org'),
-    metric('Meta title artikel', `${seoTitleOk}/${articleSeo.length}`, '≥30 & ≤70 karakter', seoTitleOk === articleSeo.length ? 'ok' : pct(seoTitleOk, articleSeo.length) >= 60 ? 'warn' : 'bad', pct(seoTitleOk, articleSeo.length), 20, ''),
-    metric('Meta description artikel', `${seoDescOk}/${articleSeo.length}`, '≥70 & ≤160 karakter', seoDescOk === articleSeo.length ? 'ok' : pct(seoDescOk, articleSeo.length) >= 60 ? 'warn' : 'bad', pct(seoDescOk, articleSeo.length), 20, ''),
-    metric('Focus keyword artikel', `${kwOk}/${articleSeo.length}`, 'semua artikel terfokus', pct(kwOk, articleSeo.length) >= 80 ? 'ok' : pct(kwOk, articleSeo.length) >= 40 ? 'warn' : 'bad', pct(kwOk, articleSeo.length), 15, ''),
-    metric('Panjang konten', `${lenOk}/${articleSeo.length}`, '≥300 kata per artikel', pct(lenOk, articleSeo.length) >= 80 ? 'ok' : pct(lenOk, articleSeo.length) >= 40 ? 'warn' : 'bad', pct(lenOk, articleSeo.length), 15, '')
+    metric('Meta title artikel', `${seoTitleOk}/${articleSeo.length}`, '≥30 & ≤70 karakter', seoTitleOk === articleSeo.length ? 'ok' : pct(seoTitleOk, articleSeo.length) >= 60 ? 'warn' : 'bad', scoreUp(pct(seoTitleOk, articleSeo.length), 60, 100), 20, ''),
+    metric('Meta description artikel', `${seoDescOk}/${articleSeo.length}`, '≥70 & ≤160 karakter', seoDescOk === articleSeo.length ? 'ok' : pct(seoDescOk, articleSeo.length) >= 60 ? 'warn' : 'bad', scoreUp(pct(seoDescOk, articleSeo.length), 60, 100), 20, ''),
+    metric('Focus keyword artikel', `${kwOk}/${articleSeo.length}`, 'semua artikel terfokus', pct(kwOk, articleSeo.length) >= 80 ? 'ok' : pct(kwOk, articleSeo.length) >= 40 ? 'warn' : 'bad', scoreUp(pct(kwOk, articleSeo.length), 40, 80), 15, ''),
+    metric('Panjang konten', `${lenOk}/${articleSeo.length}`, '≥300 kata per artikel', pct(lenOk, articleSeo.length) >= 80 ? 'ok' : pct(lenOk, articleSeo.length) >= 40 ? 'warn' : 'bad', scoreUp(pct(lenOk, articleSeo.length), 40, 80), 15, '')
   ];
 
   /* ---------- 2. PERFORMA ---------- */
@@ -253,12 +260,13 @@ export async function buildIndicators(days = 30) {
   const avgTtfb = okProbes.length ? Math.round(okProbes.reduce((s, p) => s + p.ms, 0) / okProbes.length) : null;
   const maxTtfb = okProbes.length ? Math.max(...okProbes.map((p) => p.ms)) : null;
 
+  // Kurva skor dikalibrasi agar nilai yang mencapai status "ok" bernilai 100.
   const perfMetrics = [
-    metric('Respons API (TTFB proxy)', avgTtfb == null ? 'n/a' : `${avgTtfb} ms`, '<300 ms', avgTtfb == null ? 'bad' : avgTtfb < 300 ? 'ok' : avgTtfb < 800 ? 'warn' : 'bad', avgTtfb == null ? 0 : scoreDown(avgTtfb, 150, 1500), 25, okProbes.length ? `terlambat ${maxTtfb} ms` : 'endpoint publik tidak merespons'),
-    metric('Durasi kunjungan rata-rata', `${avgDuration} detik`, '≥60 detik', avgDuration >= 60 ? 'ok' : avgDuration >= 30 ? 'warn' : 'bad', scoreUp(avgDuration, 5, 120), 25, 'dari event unload'),
-    metric('Bounce rate', `${bounceRate}%`, '≤50%', bounceRate <= 50 ? 'ok' : bounceRate <= 70 ? 'warn' : 'bad', scoreDown(bounceRate, 30, 90), 20, 'kunjungan <5 detik atau tanpa durasi'),
-    metric('Kedalaman kunjungan', `${pagesPerSession} halaman/sesi`, '≥1,5 halaman', pagesPerSession >= 1.5 ? 'ok' : pagesPerSession >= 1 ? 'warn' : 'bad', scoreUp(pagesPerSession, 0.5, 3), 15, ''),
-    metric('Tingkat keterlibatan', `${engagementRate}%`, '≥40%', engagementRate >= 40 ? 'ok' : engagementRate >= 20 ? 'warn' : 'bad', scoreUp(engagementRate, 5, 70), 15, 'kunjungan >60 detik')
+    metric('Respons API (TTFB proxy)', avgTtfb == null ? 'n/a' : `${avgTtfb} ms`, '<300 ms', avgTtfb == null ? 'bad' : avgTtfb < 300 ? 'ok' : avgTtfb < 800 ? 'warn' : 'bad', avgTtfb == null ? 0 : scoreDown(avgTtfb, 300, 900), 25, okProbes.length ? `${okProbes.length} endpoint merespons, puncak ${maxTtfb} ms` : 'endpoint publik tidak merespons'),
+    metric('Durasi kunjungan rata-rata', `${avgDuration} detik`, '≥60 detik', avgDuration >= 60 ? 'ok' : avgDuration >= 30 ? 'warn' : 'bad', scoreUp(avgDuration, 30, 60), 25, 'dari event unload'),
+    metric('Bounce rate', `${bounceRate}%`, '≤50%', bounceRate <= 50 ? 'ok' : bounceRate <= 70 ? 'warn' : 'bad', scoreDown(bounceRate, 50, 90), 20, 'kunjungan <5 detik atau tanpa durasi'),
+    metric('Kedalaman kunjungan', `${pagesPerSession} halaman/sesi`, '≥1,5 halaman', pagesPerSession >= 1.5 ? 'ok' : pagesPerSession >= 1 ? 'warn' : 'bad', scoreUp(pagesPerSession, 1, 1.5), 15, ''),
+    metric('Tingkat keterlibatan', `${engagementRate}%`, '≥40%', engagementRate >= 40 ? 'ok' : engagementRate >= 20 ? 'warn' : 'bad', scoreUp(engagementRate, 20, 40), 15, 'kunjungan >60 detik')
   ];
 
   /* ---------- 3. KONTEN ---------- */
@@ -277,13 +285,13 @@ export async function buildIndicators(days = 30) {
   const deepWords = contentRows.filter((a) => a.wordCount >= 800).length;
 
   const contentMetrics = [
-    metric('Artikel terbit', published.length, '≥10 artikel', published.length >= 10 ? 'ok' : published.length >= 5 ? 'warn' : 'bad', scoreUp(published.length, 0, 30), 20, `total ${articles.length} artikel`),
-    metric('Kedalaman rata-rata', `${avgWords} kata`, '≥800 kata', avgWords >= 800 ? 'ok' : avgWords >= 400 ? 'warn' : 'bad', scoreUp(avgWords, 100, 1500), 25, ''),
-    metric('Artikel dalam (≥800 kata)', `${deepWords}/${contentRows.length}`, '≥50% artikel', pct(deepWords, contentRows.length) >= 50 ? 'ok' : pct(deepWords, contentRows.length) >= 25 ? 'warn' : 'bad', pct(deepWords, contentRows.length), 15, ''),
-    metric('Kelengkapan visual', `${withCover.length}/${contentRows.length}`, 'semua artikel punya cover', pct(withCover.length, contentRows.length) >= 90 ? 'ok' : pct(withCover.length, contentRows.length) >= 60 ? 'warn' : 'bad', pct(withCover.length, contentRows.length), 15, ''),
-    metric('Kelengkapan excerpt', `${withExcerpt.length}/${contentRows.length}`, 'semua artikel punya excerpt', pct(withExcerpt.length, contentRows.length) >= 90 ? 'ok' : pct(withExcerpt.length, contentRows.length) >= 60 ? 'warn' : 'bad', pct(withExcerpt.length, contentRows.length), 10, ''),
-    metric('Kesegaran konten', `${fresh.length}/${contentRows.length}`, 'diperbarui ≤90 hari', pct(fresh.length, contentRows.length) >= 70 ? 'ok' : pct(fresh.length, contentRows.length) >= 40 ? 'warn' : 'bad', pct(fresh.length, contentRows.length), 10, ''),
-    metric('Sebaran kategori', categoryList.length, '≥5 kategori', categoryList.length >= 5 ? 'ok' : categoryList.length >= 3 ? 'warn' : 'bad', scoreUp(categoryList.length, 1, 8), 5, categoryList.slice(0, 3).map((c) => `${c.label} (${c.value})`).join(', '))
+    metric('Artikel terbit', published.length, '≥10 artikel', published.length >= 10 ? 'ok' : published.length >= 5 ? 'warn' : 'bad', scoreUp(published.length, 5, 10), 20, `total ${articles.length} artikel`),
+    metric('Kedalaman rata-rata', `${avgWords} kata`, '≥800 kata', avgWords >= 800 ? 'ok' : avgWords >= 400 ? 'warn' : 'bad', scoreUp(avgWords, 400, 800), 25, ''),
+    metric('Artikel dalam (≥800 kata)', `${deepWords}/${contentRows.length}`, '≥50% artikel', pct(deepWords, contentRows.length) >= 50 ? 'ok' : pct(deepWords, contentRows.length) >= 25 ? 'warn' : 'bad', scoreUp(pct(deepWords, contentRows.length), 25, 50), 15, ''),
+    metric('Kelengkapan visual', `${withCover.length}/${contentRows.length}`, 'semua artikel punya cover', pct(withCover.length, contentRows.length) >= 90 ? 'ok' : pct(withCover.length, contentRows.length) >= 60 ? 'warn' : 'bad', scoreUp(pct(withCover.length, contentRows.length), 60, 90), 15, ''),
+    metric('Kelengkapan excerpt', `${withExcerpt.length}/${contentRows.length}`, 'semua artikel punya excerpt', pct(withExcerpt.length, contentRows.length) >= 90 ? 'ok' : pct(withExcerpt.length, contentRows.length) >= 60 ? 'warn' : 'bad', scoreUp(pct(withExcerpt.length, contentRows.length), 60, 90), 10, ''),
+    metric('Kesegaran konten', `${fresh.length}/${contentRows.length}`, 'diperbarui ≤90 hari', pct(fresh.length, contentRows.length) >= 70 ? 'ok' : pct(fresh.length, contentRows.length) >= 40 ? 'warn' : 'bad', scoreUp(pct(fresh.length, contentRows.length), 40, 70), 10, ''),
+    metric('Sebaran kategori', categoryList.length, '≥5 kategori', categoryList.length >= 5 ? 'ok' : categoryList.length >= 3 ? 'warn' : 'bad', scoreUp(categoryList.length, 3, 5), 5, categoryList.slice(0, 3).map((c) => `${c.label} (${c.value})`).join(', '))
   ];
 
   /* ---------- 4. KATA KUNCI ---------- */
@@ -340,11 +348,11 @@ export async function buildIndicators(days = 30) {
   const dropped = movers.filter((m) => m.delta < 0).length;
 
   const kwMetrics = [
-    metric('Kata kunci dilacak', total, '≥10 kata kunci', total >= 10 ? 'ok' : total >= 5 ? 'warn' : 'bad', scoreUp(total, 0, 30), 20, ''),
-    metric('Sudah punya posisi', `${ranked}/${total}`, '≥80% terindeks', pct(ranked, total) >= 80 ? 'ok' : pct(ranked, total) >= 50 ? 'warn' : 'bad', pct(ranked, total), 20, ''),
-    metric('Posisi 10 teratas', top10, '≥50% keyword', pct(top10, total) >= 50 ? 'ok' : pct(top10, total) >= 25 ? 'warn' : 'bad', pct(top10, total), 20, `top 3: ${top3}, posisi 11-20: ${Math.max(0, top20 - top10)}`),
-    metric('Rata-rata posisi', avgRank ? round(avgRank, 1) : 'n/a', '≤15', avgRank === 0 ? 'warn' : avgRank <= 15 ? 'ok' : avgRank <= 30 ? 'warn' : 'bad', avgRank === 0 ? 50 : scoreDown(avgRank, 5, 60), 20, `volume pencarian ${volume.toLocaleString('id-ID')}`),
-    metric('Momentum peringkat', `${improved} naik / ${dropped} turun`, 'dominan naik', improved >= dropped ? 'ok' : 'warn', scoreUp(improved - dropped, -3, 3), 20, 'berdasarkan riwayat keyword_rankings')
+    metric('Kata kunci dilacak', total, '≥10 kata kunci', total >= 10 ? 'ok' : total >= 5 ? 'warn' : 'bad', scoreUp(total, 5, 10), 20, ''),
+    metric('Sudah punya posisi', `${ranked}/${total}`, '≥80% terindeks', pct(ranked, total) >= 80 ? 'ok' : pct(ranked, total) >= 50 ? 'warn' : 'bad', scoreUp(pct(ranked, total), 50, 80), 20, ''),
+    metric('Posisi 10 teratas', top10, '≥50% keyword', pct(top10, total) >= 50 ? 'ok' : pct(top10, total) >= 25 ? 'warn' : 'bad', scoreUp(pct(top10, total), 25, 50), 20, `top 3: ${top3}, posisi 11-20: ${Math.max(0, top20 - top10)}`),
+    metric('Rata-rata posisi', avgRank ? round(avgRank, 1) : 'n/a', '≤15', avgRank === 0 ? 'warn' : avgRank <= 15 ? 'ok' : avgRank <= 30 ? 'warn' : 'bad', avgRank === 0 ? 50 : scoreDown(avgRank, 15, 40), 20, `volume pencarian ${volume.toLocaleString('id-ID')}`),
+    metric('Momentum peringkat', `${improved} naik / ${dropped} turun`, 'dominan naik', improved >= dropped ? 'ok' : 'warn', scoreUp(improved - dropped, 0, 3), 20, 'berdasarkan riwayat keyword_rankings')
   ];
 
   /* ---------- 5. ENGAGEMENT & LEAD ---------- */
@@ -379,11 +387,11 @@ export async function buildIndicators(days = 30) {
   const winRate = leadsAll > 0 ? pct(won, leadsAll) : 0;
 
   const engagementMetrics = [
-    metric('Lead baru (periode ini)', leadTotal30, '≥5 lead', leadTotal30 >= 5 ? 'ok' : leadTotal30 >= 2 ? 'warn' : 'bad', scoreUp(leadTotal30, 0, 25), 25, `total keseluruhan ${leadsAll} lead`),
-    metric('Tingkat konversi', `${conversionRate}%`, '≥2%', conversionRate >= 2 ? 'ok' : conversionRate >= 0.5 ? 'warn' : 'bad', scoreUp(conversionRate, 0, 8), 25, 'lead ÷ pengunjung unik'),
-    metric('Event interaksi', eventTotal, '≥30 event', eventTotal >= 30 ? 'ok' : eventTotal >= 10 ? 'warn' : 'bad', scoreUp(eventTotal, 0, 200), 20, `${eventUnique} jenis event`),
-    metric('Retensi pengunjung', `${retentionRate}%`, '≥30% kunjungan ulang', retentionRate >= 30 ? 'ok' : retentionRate >= 15 ? 'warn' : 'bad', scoreUp(retentionRate, 0, 60), 15, ''),
-    metric('Win rate lead', `${winRate}%`, '≥20%', winRate >= 20 ? 'ok' : winRate >= 10 ? 'warn' : 'bad', scoreUp(winRate, 0, 60), 15, `leadwon ${won} dari ${leadsAll}`)
+    metric('Lead baru (periode ini)', leadTotal30, '≥5 lead', leadTotal30 >= 5 ? 'ok' : leadTotal30 >= 2 ? 'warn' : 'bad', scoreUp(leadTotal30, 2, 5), 25, `total keseluruhan ${leadsAll} lead`),
+    metric('Tingkat konversi', `${conversionRate}%`, '≥2%', conversionRate >= 2 ? 'ok' : conversionRate >= 0.5 ? 'warn' : 'bad', scoreUp(conversionRate, 0.5, 2), 25, 'lead ÷ pengunjung unik'),
+    metric('Event interaksi', eventTotal, '≥30 event', eventTotal >= 30 ? 'ok' : eventTotal >= 10 ? 'warn' : 'bad', scoreUp(eventTotal, 10, 30), 20, `${eventUnique} jenis event`),
+    metric('Retensi pengunjung', `${retentionRate}%`, '≥30% kunjungan ulang', retentionRate >= 30 ? 'ok' : retentionRate >= 15 ? 'warn' : 'bad', scoreUp(retentionRate, 15, 30), 15, ''),
+    metric('Win rate lead', `${winRate}%`, '≥20%', winRate >= 20 ? 'ok' : winRate >= 10 ? 'warn' : 'bad', scoreUp(winRate, 10, 20), 15, `lead won ${won} dari ${leadsAll}`)
   ];
 
   /* ---------- GABUNGKAN ---------- */
